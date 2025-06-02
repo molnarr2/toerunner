@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Folder Include="File\" />
       <Folder Include="ParallelRunner\" />
       <Folder Include="Setup\" />
     </ItemGroup>
