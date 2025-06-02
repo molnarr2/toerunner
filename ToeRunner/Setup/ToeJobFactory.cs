@@ -1,0 +1,41 @@
+using System.Collections.Generic;
+using ToeRunner.Model;
+
+namespace ToeRunner.Setup;
+
+/// <summary>
+/// Factory class for creating ToeJob instances from RunConfig objects.
+/// </summary>
+public static class ToeJobFactory
+{
+    /// <summary>
+    /// Creates a list of ToeJob objects from a list of RunConfig objects.
+    /// For each RunConfig, creates multiple ToeJobs based on the RunCount and TinyToeConfigPaths.
+    /// </summary>
+    /// <param name="runConfigs">The list of RunConfig objects to process.</param>
+    /// <returns>A list of ToeJob objects.</returns>
+    public static List<ToeJob> CreateToeJobs(List<RunConfig> runConfigs)
+    {
+        var toeJobs = new List<ToeJob>();
+        
+        foreach (var runConfig in runConfigs)
+        {
+            for (int count = 1; count <= runConfig.RunCount; count++)
+            {
+                foreach (var tinyToeConfigPath in runConfig.TinyToeConfigPaths)
+                {
+                    var toeJob = new ToeJob
+                    {
+                        Name = $"{runConfig.Name}_{count}",
+                        BigToeEnvironmentConfigPath = runConfig.BigToeEnvironmentConfigPath,
+                        TinyToeConfigPath = tinyToeConfigPath
+                    };
+                    
+                    toeJobs.Add(toeJob);
+                }
+            }
+        }
+        
+        return toeJobs;
+    }
+}
