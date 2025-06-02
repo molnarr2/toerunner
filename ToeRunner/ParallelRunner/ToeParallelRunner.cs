@@ -1,10 +1,6 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using ToeRunner.Model;
+using ToeRunner.ToeRun;
 
 namespace ToeRunner.ParallelRunner;
 
@@ -14,14 +10,17 @@ namespace ToeRunner.ParallelRunner;
 public class ToeParallelRunner
 {
     private readonly ToeRunnerConfig _config;
+    private readonly IToeRunFactory _toeRunFactory;
     
     /// <summary>
     /// Initializes a new instance of the ToeParallelRunner class.
     /// </summary>
     /// <param name="config">The configuration for the ToeRunner.</param>
-    public ToeParallelRunner(ToeRunnerConfig config)
+    /// <param name="toeRunFactory">The factory for creating IToeRun instances.</param>
+    public ToeParallelRunner(ToeRunnerConfig config, IToeRunFactory toeRunFactory)
     {
         _config = config ?? throw new ArgumentNullException(nameof(config));
+        _toeRunFactory = toeRunFactory ?? throw new ArgumentNullException(nameof(toeRunFactory));
     }
     
     /// <summary>
@@ -76,13 +75,23 @@ public class ToeParallelRunner
     /// </summary>
     /// <param name="job">The job to process.</param>
     /// <param name="threadId">The ID of the thread processing the job.</param>
-    private void ProcessJob(ToeJob job, int threadId)
+    private async void ProcessJob(ToeJob job, int threadId)
     {
-        // This method will be implemented in the future
-        // For now, just log the job being processed
         Console.WriteLine($"Thread {threadId} processing job: {job.Name} (BigToe: {job.BigToeEnvironmentConfigPath}, TinyToe: {job.TinyToeConfigPath})");
         
-        // Simulate some work
-        Thread.Sleep(100);
+        try
+        {
+            // Create an IToeRun instance using the factory
+            IToeRun toeRun = _toeRunFactory.Create(job, threadId);
+            
+            // Run the IToeRun instance
+            await toeRun.RunAsync();
+            
+            Console.WriteLine($"Thread {threadId} completed job: {job.Name}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Thread {threadId} failed to process job {job.Name}: {ex.Message}");
+        }
     }
 }
