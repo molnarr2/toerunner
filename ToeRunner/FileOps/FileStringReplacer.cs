@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace ToeRunner.File
+namespace ToeRunner.FileOps
 {
     /// <summary>
     /// Provides file string replacement functionality.
