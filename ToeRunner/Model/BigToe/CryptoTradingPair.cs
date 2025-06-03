@@ -1,0 +1,63 @@
+namespace ToeRunner.Model.BigToe;
+
+
+/// <summary>
+/// Represents a cryptocurrency trading pair on a specific market/exchange
+/// </summary>
+public class CryptoTradingPair
+{
+    /// <summary>
+    /// If on a market with crypto coins then this is the crypto coin symbol you are trading (e.g., LTC)
+    /// If on a dex market then this is the mint address you are trading (SOL e.g., FmMmbH3VGkBRvADe7uqedKtGxqJ2gTK92aHDyqAYur4g)
+    /// </summary>
+    public string AssetId { get; }
+
+    /// <summary>
+    /// What the AssetId is quoted against.
+    /// If on a market with crypto coins then this is the crypto coin symbol you paying with (e.g., BTC)
+    /// If on a dex market then this is the mint address you are trading (SOL e.g., So11111111111111111111111111111111111111112)
+    /// </summary>
+    public string QuoteAssetId { get; }
+   
+    /// <summary>
+    /// The exchange or market where this trading pair is listed
+    /// </summary>
+    public string Exchange { get; }
+
+    /// <summary>
+    /// It is the combination of the asset and quote asset with a dash, e.g., "ETH-BTC" 
+    /// </summary>
+    public string TradingPair { get; }
+    
+    /// <summary>
+    /// Whether this trading pair is currently active on the exchange
+    /// </summary>
+    public bool IsActive { get; }
+
+    /// <summary>
+    /// The timestamp when this market data was last updated
+    /// </summary>
+    public DateTime LastUpdated { get; }
+
+    /// <summary>
+    /// Creates a new CryptoTradingPair instance
+    /// </summary>
+    public CryptoTradingPair(
+        string assetId,
+        string quoteAssetId,
+        string exchange,
+        bool isActive)
+    {
+        AssetId = assetId ?? throw new ArgumentNullException(nameof(assetId));
+        QuoteAssetId = quoteAssetId ?? throw new ArgumentNullException(nameof(quoteAssetId));
+        Exchange = exchange ?? throw new ArgumentNullException(nameof(exchange));
+        TradingPair = $"{AssetId}-{QuoteAssetId}";
+        IsActive = isActive;
+        LastUpdated = DateTime.Now;
+    }
+
+    /// <summary>
+    /// Returns a string that represents the current object
+    /// </summary>
+    public override string ToString() => $"{TradingPair} on {Exchange}";
+}
