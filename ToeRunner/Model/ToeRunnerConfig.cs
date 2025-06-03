@@ -6,6 +6,13 @@ public class ToeRunnerConfig {
     public string BigToeExecutablePath { get; set; }
     public string TinyToeExecutablePath { get; set; }
     public List<RunConfig> Runs { get; set; }
+    public FirebaseConfig Firebase { get; set; }
+}
+
+public class FirebaseConfig {
+    public bool Enabled { get; set; }
+    public string ProjectId { get; set; }
+    public string ApiKey { get; set; }
 }
 
 public class RunConfig {

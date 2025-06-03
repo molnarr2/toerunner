@@ -9,6 +9,7 @@
 
     <ItemGroup>
       <Folder Include="FileOps\" />
+      <Folder Include="Math\" />
       <Folder Include="ParallelRunner\" />
       <Folder Include="Setup\" />
     </ItemGroup>

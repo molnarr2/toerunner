@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
 using ToeRunner.Model;
+using ToeRunner.Model.Firebase;
+using ToeRunner.Plugin;
 using ToeRunner.ToeRun;
 
 namespace ToeRunner.ParallelRunner;
@@ -11,16 +13,19 @@ public class ToeParallelRunner
 {
     private readonly ToeRunnerConfig _config;
     private readonly IToeRunFactory _toeRunFactory;
+    private readonly ICloudPlatform? _cloudPlatform;
     
     /// <summary>
     /// Initializes a new instance of the ToeParallelRunner class.
     /// </summary>
     /// <param name="config">The configuration for the ToeRunner.</param>
     /// <param name="toeRunFactory">The factory for creating IToeRun instances.</param>
-    public ToeParallelRunner(ToeRunnerConfig config, IToeRunFactory toeRunFactory)
+    /// <param name="cloudPlatform">Optional cloud platform for data storage.</param>
+    public ToeParallelRunner(ToeRunnerConfig config, IToeRunFactory toeRunFactory, ICloudPlatform? cloudPlatform = null)
     {
         _config = config ?? throw new ArgumentNullException(nameof(config));
         _toeRunFactory = toeRunFactory ?? throw new ArgumentNullException(nameof(toeRunFactory));
+        _cloudPlatform = cloudPlatform;
     }
     
     /// <summary>
@@ -81,17 +86,127 @@ public class ToeParallelRunner
         
         try
         {
+            // Create a batch record if cloud platform is available
+            string? batchId = null;
+            if (_cloudPlatform != null)
+            {
+                batchId = await CreateBatchRecord(job, threadId);
+            }
+            
             // Create an IToeRun instance using the factory
             IToeRun toeRun = _toeRunFactory.Create(job, threadId);
             
             // Run the IToeRun instance
             await toeRun.RunAsync();
             
+            // Update batch record with completion time if cloud platform is available
+            if (_cloudPlatform != null && !string.IsNullOrEmpty(batchId))
+            {
+                await UpdateBatchRecord(batchId, job, threadId);
+            }
+            
             Console.WriteLine($"Thread {threadId} completed job: {job.Name}");
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Thread {threadId} failed to process job {job.Name}: {ex.Message}");
+        }
+    }
+    
+    /// <summary>
+    /// Creates a batch record in the cloud platform.
+    /// </summary>
+    /// <param name="job">The job being processed.</param>
+    /// <param name="threadId">The ID of the thread processing the job.</param>
+    /// <returns>The ID of the created batch record, or null if creation failed.</returns>
+    private async Task<string?> CreateBatchRecord(ToeJob job, int threadId)
+    {
+        try
+        {
+            if (_cloudPlatform == null)
+            {
+                return null;
+            }
+            
+            var batchToeRun = new BatchToeRun
+            {
+                Name = job.Name,
+                Description = $"Job run by thread {threadId}",
+                Server = Environment.MachineName,
+                StartTimestamp = DateTime.UtcNow,
+                SegmentDetails = new List<Model.BigToe.PlaybackSegmentDetails>()
+            };
+            
+            var batchId = await _cloudPlatform.AddBatchToeRun(batchToeRun);
+            Console.WriteLine($"Created batch record with ID: {batchId}");
+            return batchId;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to create batch record: {ex.Message}");
+            return null;
+        }
+    }
+    
+    /// <summary>
+    /// Updates a batch record in the cloud platform with completion information.
+    /// </summary>
+    /// <param name="batchId">The ID of the batch record to update.</param>
+    /// <param name="job">The job that was processed.</param>
+    /// <param name="threadId">The ID of the thread that processed the job.</param>
+    private async Task UpdateBatchRecord(string batchId, ToeJob job, int threadId)
+    {
+        try
+        {
+            if (_cloudPlatform == null)
+            {
+                return;
+            }
+            
+            var batchToeRun = new BatchToeRun
+            {
+                Id = batchId,
+                EndTimestamp = DateTime.UtcNow
+            };
+            
+            await _cloudPlatform.SaveBatchToeRun(batchToeRun);
+            Console.WriteLine($"Updated batch record with ID: {batchId}");
+            
+            // Here we would typically also add strategy results
+            // await AddStrategyResults(batchId, job, threadId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to update batch record: {ex.Message}");
+        }
+    }
+    
+    /// <summary>
+    /// Adds strategy results to the cloud platform.
+    /// </summary>
+    /// <param name="batchId">The ID of the batch record to associate with the strategy results.</param>
+    /// <param name="job">The job that was processed.</param>
+    /// <param name="threadId">The ID of the thread that processed the job.</param>
+    private async Task AddStrategyResults(string batchId, ToeJob job, int threadId)
+    {
+        try
+        {
+            if (_cloudPlatform == null)
+            {
+                return;
+            }
+            
+            // This would require parsing the output files from the ToeRun
+            // var strategyResults = ParseStrategyResults(job, threadId);
+            // await _cloudPlatform.AddStrategyResults(batchId, strategyResults);
+            
+            // Adding a Task.Delay to make this method properly async until real implementation is added
+            await Task.Delay(1); // Minimal delay to satisfy the async requirement
+            Console.WriteLine($"Added strategy results for batch ID: {batchId}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to add strategy results: {ex.Message}");
         }
     }
 }

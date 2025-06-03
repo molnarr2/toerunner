@@ -1,6 +1,13 @@
+using Google.Cloud.Firestore;
 using Newtonsoft.Json;
+using System;
+using System.IO;
+using System.Threading.Tasks;
+using ToeRunner.Firebase;
 using ToeRunner.Model;
+using ToeRunner.Model.Firebase;
 using ToeRunner.ParallelRunner;
+using ToeRunner.Plugin;
 using ToeRunner.Setup;
 using ToeRunner.ToeRun;
 
@@ -32,7 +39,7 @@ public class Program
 
             // 2. Use Newtonsoft.Json to parse the JSON to ToeRunnerConfig
             string jsonContent = File.ReadAllText(configPath);
-            ToeRunnerConfig config = JsonConvert.DeserializeObject<ToeRunnerConfig>(jsonContent);
+            ToeRunnerConfig config = JsonConvert.DeserializeObject<ToeRunnerConfig>(jsonContent) ?? new ToeRunnerConfig();
 
             if (config == null)
             {
@@ -41,6 +48,24 @@ public class Program
             }
 
             Console.WriteLine($"Configuration loaded successfully. Parallel runners: {config.ParallelRunners}");
+            
+            // Initialize Firebase if enabled
+            ICloudPlatform? cloudPlatform = null;
+            if (config.Firebase != null && config.Firebase.Enabled)
+            {
+                try
+                {
+                    Console.WriteLine("Initializing Firebase connection...");
+                    var firebaseFirestore = new FirebaseFirestore();
+                    await firebaseFirestore.Initialize(config.Firebase.ProjectId, config.Firebase.ApiKey);
+                    cloudPlatform = firebaseFirestore;
+                    Console.WriteLine("Firebase connection established successfully.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to initialize Firebase: {ex.Message}");
+                }
+            }
 
             // 3. Create an instance of ToeRunFactory
             IToeRunFactory toeRunFactory = new ToeRunFactory(config);
@@ -49,8 +74,8 @@ public class Program
             var toeJobs = ToeJobFactory.CreateToeJobs(config.Runs);
             Console.WriteLine($"Created {toeJobs.Count} jobs to process.");
 
-            // 5. Create an instance of ToeParallelRunner
-            var parallelRunner = new ToeParallelRunner(config, toeRunFactory);
+            // 5. Create an instance of ToeParallelRunner with cloud platform if available
+            var parallelRunner = new ToeParallelRunner(config, toeRunFactory, cloudPlatform);
 
             // 6. Run the ToeParallelRunner::ProcessJobsAsync and wait for it to finish
             Console.WriteLine("Starting parallel processing...");
