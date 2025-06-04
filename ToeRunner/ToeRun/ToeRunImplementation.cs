@@ -1,6 +1,8 @@
 using System.Diagnostics;
+using System.Text.Json;
 using ToeRunner.FileOps;
 using ToeRunner.Model;
+using ToeRunner.Model.BigToe;
 
 namespace ToeRunner.ToeRun
 {
@@ -79,10 +81,43 @@ namespace ToeRunner.ToeRun
 
                 // 6. Run BigToe executable with TinyToe output
                 await RunProcessAsync(_config.BigToeExecutablePath, $"{bigToeConfigFilePath} {tinyToeOutputFilePath}");
+
+                // 7. Load the result JSON file from BigToe
+                StrategyEvaluationResult strategyEvaluationResult = LoadBigToeResultFile(bigToeOutputFilePath);
+                Console.WriteLine($"Loaded BigToe result with {strategyEvaluationResult?.ExecutorEvaluationResults?.Count ?? 0} executor evaluation results.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in ToeRunImplementation.RunAsync: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Loads the BigToe result JSON file and deserializes it to a StrategyEvaluationResult
+        /// </summary>
+        /// <param name="filePath">Path to the BigToe output JSON file</param>
+        /// <returns>Deserialized StrategyEvaluationResult object</returns>
+        private StrategyEvaluationResult LoadBigToeResultFile(string filePath)
+        {
+            try
+            {
+                if (!File.Exists(filePath))
+                {
+                    throw new FileNotFoundException($"BigToe result file not found at {filePath}");
+                }
+
+                string jsonContent = File.ReadAllText(filePath);
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+
+                return JsonSerializer.Deserialize<StrategyEvaluationResult>(jsonContent, options);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading BigToe result file: {ex.Message}");
                 throw;
             }
         }
