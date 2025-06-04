@@ -1,8 +1,12 @@
 using System.Diagnostics;
 using System.Text.Json;
+using ToeRunner.Conversion;
 using ToeRunner.FileOps;
+using ToeRunner.Filter;
 using ToeRunner.Model;
 using ToeRunner.Model.BigToe;
+using ToeRunner.Model.Firebase;
+using ToeRunner.Plugin;
 
 namespace ToeRunner.ToeRun
 {
@@ -14,6 +18,10 @@ namespace ToeRunner.ToeRun
         private readonly ToeRunnerConfig _config;
         private readonly ToeJob _job;
         private readonly int _id;
+        private readonly string _batchToeRunId;
+        private readonly decimal _uploadStrategyPercentage;
+        private readonly FilterPercentageType _filterPercentageType;
+        private readonly ICloudPlatform? _cloudPlatform;
 
         /// <summary>
         /// Constructor for ToeRunImplementation
@@ -21,11 +29,22 @@ namespace ToeRunner.ToeRun
         /// <param name="config">Configuration for the ToeRunner</param>
         /// <param name="job">The ToeJob to run</param>
         /// <param name="id">Unique identifier for this run</param>
-        public ToeRunImplementation(ToeRunnerConfig config, ToeJob job, int id)
+        /// <param name="batchToeRunId">The ID of the batch run in Firebase</param>
+        /// <param name="cloudPlatform">Cloud platform for uploading results</param>
+        public ToeRunImplementation(
+            ToeRunnerConfig config, 
+            ToeJob job, 
+            int id, 
+            string batchToeRunId,
+            ICloudPlatform? cloudPlatform)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _job = job ?? throw new ArgumentNullException(nameof(job));
             _id = id;
+            _batchToeRunId = batchToeRunId;
+            _uploadStrategyPercentage = _config.UploadStrategyPercentage;
+            _filterPercentageType = _config.FilterProfitPercentage;
+            _cloudPlatform = cloudPlatform;
         }
 
         /// <summary>
@@ -83,8 +102,32 @@ namespace ToeRunner.ToeRun
                 await RunProcessAsync(_config.BigToeExecutablePath, $"{bigToeConfigFilePath} {tinyToeOutputFilePath}");
 
                 // 7. Load the result JSON file from BigToe
-                StrategyEvaluationResult strategyEvaluationResult = LoadBigToeResultFile(bigToeOutputFilePath);
+                StrategyEvaluationResult? strategyEvaluationResult = LoadBigToeResultFile(bigToeOutputFilePath);
                 Console.WriteLine($"Loaded BigToe result with {strategyEvaluationResult?.ExecutorEvaluationResults?.Count ?? 0} executor evaluation results.");
+                
+                // 8. Convert to list of StrategyResult
+                if (strategyEvaluationResult == null)
+                {
+                    Console.WriteLine("Strategy evaluation result is null. Cannot convert to strategy results.");
+                    return;
+                }
+                
+                List<StrategyResult> strategyResults = StrategyResultConverter.ConvertToStrategyResults(strategyEvaluationResult);
+                Console.WriteLine($"Converted {strategyResults.Count} strategy results.");
+                
+                // 9. Filter out failed strategies
+                List<StrategyResult> filteredResults = StrategyFilter.FilterFailedStrategies(
+                    strategyResults, 
+                    _uploadStrategyPercentage, 
+                    _filterPercentageType);
+                Console.WriteLine($"Filtered to {filteredResults.Count} strategy results after applying filter.");
+                
+                // 10. Upload strategies to Firebase
+                if (_cloudPlatform != null && !string.IsNullOrEmpty(_batchToeRunId) && filteredResults.Any())
+                {
+                    await _cloudPlatform.AddStrategyResults(_batchToeRunId, filteredResults);
+                    Console.WriteLine($"Uploaded {filteredResults.Count} strategy results to Firebase with batch ID: {_batchToeRunId}");
+                }
             }
             catch (Exception ex)
             {
@@ -98,7 +141,7 @@ namespace ToeRunner.ToeRun
         /// </summary>
         /// <param name="filePath">Path to the BigToe output JSON file</param>
         /// <returns>Deserialized StrategyEvaluationResult object</returns>
-        private StrategyEvaluationResult LoadBigToeResultFile(string filePath)
+        private StrategyEvaluationResult? LoadBigToeResultFile(string filePath)
         {
             try
             {

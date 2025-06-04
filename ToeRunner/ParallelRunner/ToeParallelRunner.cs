@@ -94,7 +94,7 @@ public class ToeParallelRunner
             }
             
             // Create an IToeRun instance using the factory
-            IToeRun toeRun = _toeRunFactory.Create(job, threadId);
+            IToeRun toeRun = _toeRunFactory.Create(job, threadId, batchId);
             
             // Run the IToeRun instance
             await toeRun.RunAsync();
@@ -172,8 +172,8 @@ public class ToeParallelRunner
             await _cloudPlatform.SaveBatchToeRun(batchToeRun);
             Console.WriteLine($"Updated batch record with ID: {batchId}");
             
-            // Here we would typically also add strategy results
-            // await AddStrategyResults(batchId, job, threadId);
+            // Add strategy results
+            await AddStrategyResults(batchId, job, threadId);
         }
         catch (Exception ex)
         {
@@ -191,18 +191,17 @@ public class ToeParallelRunner
     {
         try
         {
-            if (_cloudPlatform == null)
+            if (_cloudPlatform == null || string.IsNullOrEmpty(batchId))
             {
                 return;
             }
             
-            // This would require parsing the output files from the ToeRun
-            // var strategyResults = ParseStrategyResults(job, threadId);
-            // await _cloudPlatform.AddStrategyResults(batchId, strategyResults);
+            // The strategy results are now handled directly in the ToeRunImplementation class
+            // This method is kept for backward compatibility and logging purposes
+            Console.WriteLine($"Strategy results for batch ID: {batchId} are being handled by ToeRunImplementation");
             
-            // Adding a Task.Delay to make this method properly async until real implementation is added
-            await Task.Delay(1); // Minimal delay to satisfy the async requirement
-            Console.WriteLine($"Added strategy results for batch ID: {batchId}");
+            // Add a minimal delay to make this method properly async
+            await Task.Delay(1);
         }
         catch (Exception ex)
         {
