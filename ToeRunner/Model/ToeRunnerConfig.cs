@@ -1,5 +1,19 @@
 namespace ToeRunner.Model;
 
+public enum FilterPercentageType {
+    p00,
+    p08,
+    p10,
+    p15,
+    p20,
+    p25,
+    p30,
+    p35,
+    p40,
+    p50,
+    p60
+}
+
 public class ToeRunnerConfig {
     public int ParallelRunners { get; set; }
     public string WorkspacePath { get; set; }
@@ -7,6 +21,16 @@ public class ToeRunnerConfig {
     public string TinyToeExecutablePath { get; set; }
     public List<RunConfig> Runs { get; set; }
     public FirebaseConfig Firebase { get; set; }
+    /// <summary>
+    /// The percentage of successful strategies to upload. 
+    /// 1.0 = 100%
+    /// </summary>
+    public decimal UploadStrategyPercentage { get; set; }
+    
+    /// <summary>
+    /// To determine if a strategy should be uploaded based on profit percentage.
+    /// </summary>
+    public FilterPercentageType FilterProfitPercentage { get; set; } 
 }
 
 public class FirebaseConfig {

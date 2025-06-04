@@ -10,6 +10,7 @@
     <ItemGroup>
       <Folder Include="Conversion\" />
       <Folder Include="FileOps\" />
+      <Folder Include="Filter\" />
       <Folder Include="Math\" />
       <Folder Include="ParallelRunner\" />
       <Folder Include="Setup\" />
