@@ -21,7 +21,7 @@ namespace ToeRunner.ToeRun
         private readonly string _batchToeRunId;
         private readonly decimal _uploadStrategyPercentage;
         private readonly FilterPercentageType _filterPercentageType;
-        private readonly ICloudPlatform? _cloudPlatform;
+        private readonly ICloudPlatform _cloudPlatform;
 
         /// <summary>
         /// Constructor for ToeRunImplementation
@@ -36,7 +36,7 @@ namespace ToeRunner.ToeRun
             ToeJob job, 
             int id, 
             string batchToeRunId,
-            ICloudPlatform? cloudPlatform)
+            ICloudPlatform cloudPlatform)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _job = job ?? throw new ArgumentNullException(nameof(job));
@@ -123,10 +123,13 @@ namespace ToeRunner.ToeRun
                 Console.WriteLine($"Filtered to {filteredResults.Count} strategy results after applying filter.");
                 
                 // 10. Upload strategies to Firebase
-                if (_cloudPlatform != null && !string.IsNullOrEmpty(_batchToeRunId) && filteredResults.Any())
+                if (filteredResults.Any())
                 {
                     await _cloudPlatform.AddStrategyResults(_batchToeRunId, filteredResults);
                     Console.WriteLine($"Uploaded {filteredResults.Count} strategy results to Firebase with batch ID: {_batchToeRunId}");
+                }
+                else {
+                    Console.WriteLine($"No successful strategies found after applying filter. No results uploaded to Firebase.");
                 }
             }
             catch (Exception ex)

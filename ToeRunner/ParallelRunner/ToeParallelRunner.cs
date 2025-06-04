@@ -13,7 +13,7 @@ public class ToeParallelRunner
 {
     private readonly ToeRunnerConfig _config;
     private readonly IToeRunFactory _toeRunFactory;
-    private readonly ICloudPlatform? _cloudPlatform;
+    private readonly ICloudPlatform _cloudPlatform;
     
     /// <summary>
     /// Initializes a new instance of the ToeParallelRunner class.
@@ -21,7 +21,7 @@ public class ToeParallelRunner
     /// <param name="config">The configuration for the ToeRunner.</param>
     /// <param name="toeRunFactory">The factory for creating IToeRun instances.</param>
     /// <param name="cloudPlatform">Optional cloud platform for data storage.</param>
-    public ToeParallelRunner(ToeRunnerConfig config, IToeRunFactory toeRunFactory, ICloudPlatform? cloudPlatform = null)
+    public ToeParallelRunner(ToeRunnerConfig config, IToeRunFactory toeRunFactory, ICloudPlatform cloudPlatform)
     {
         _config = config ?? throw new ArgumentNullException(nameof(config));
         _toeRunFactory = toeRunFactory ?? throw new ArgumentNullException(nameof(toeRunFactory));
@@ -87,11 +87,7 @@ public class ToeParallelRunner
         try
         {
             // Create a batch record if cloud platform is available
-            string? batchId = null;
-            if (_cloudPlatform != null)
-            {
-                batchId = await CreateBatchRecord(job, threadId);
-            }
+            var batchId = await CreateBatchRecord(job, threadId);
             
             // Create an IToeRun instance using the factory
             IToeRun toeRun = _toeRunFactory.Create(job, threadId, batchId);
@@ -99,8 +95,8 @@ public class ToeParallelRunner
             // Run the IToeRun instance
             await toeRun.RunAsync();
             
-            // Update batch record with completion time if cloud platform is available
-            if (_cloudPlatform != null && !string.IsNullOrEmpty(batchId))
+            // Update batch record with completion time
+            if (!string.IsNullOrEmpty(batchId))
             {
                 await UpdateBatchRecord(batchId);
             }
@@ -123,11 +119,6 @@ public class ToeParallelRunner
     {
         try
         {
-            if (_cloudPlatform == null)
-            {
-                return null;
-            }
-            
             var batchToeRun = new BatchToeRun
             {
                 Name = job.Name,
@@ -158,11 +149,6 @@ public class ToeParallelRunner
     {
         try
         {
-            if (_cloudPlatform == null)
-            {
-                return;
-            }
-            
             var batchToeRun = new BatchToeRun
             {
                 Id = batchId,
@@ -177,5 +163,4 @@ public class ToeParallelRunner
             Console.WriteLine($"Failed to update batch record: {ex.Message}");
         }
     }
-    
 }

@@ -51,24 +51,22 @@ public class Program
             
             // Initialize Firebase if enabled
             ICloudPlatform? cloudPlatform = null;
-            if (config.Firebase != null && config.Firebase.Enabled)
+            try
             {
-                try
-                {
-                    Console.WriteLine("Initializing Firebase connection...");
-                    var firebaseFirestore = new FirebaseFirestore();
-                    await firebaseFirestore.Initialize(config.Firebase.ProjectId, config.Firebase.ApiKey);
-                    cloudPlatform = firebaseFirestore;
-                    Console.WriteLine("Firebase connection established successfully.");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Failed to initialize Firebase: {ex.Message}");
-                }
+                Console.WriteLine("Initializing Firebase connection...");
+                var firebaseFirestore = new FirebaseFirestore();
+                await firebaseFirestore.Initialize(config.Firebase.ProjectId, config.Firebase.ApiKey);
+                cloudPlatform = firebaseFirestore;
+                Console.WriteLine("Firebase connection established successfully.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to initialize Firebase: {ex.Message}");
+                return;
             }
 
             // 3. Create an instance of ToeRunFactory
-            IToeRunFactory toeRunFactory = new ToeRunFactory(config);
+            IToeRunFactory toeRunFactory = new ToeRunFactory(config, cloudPlatform);
 
             // 4. Create a list of ToeJob via the ToeJobFactory
             var toeJobs = ToeJobFactory.CreateToeJobs(config.Runs);
