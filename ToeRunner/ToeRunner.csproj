@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Folder Include="Conversion\" />
       <Folder Include="FileOps\" />
       <Folder Include="Math\" />
       <Folder Include="ParallelRunner\" />
