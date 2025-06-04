@@ -13,15 +13,15 @@ public class ToeParallelRunner
 {
     private readonly ToeRunnerConfig _config;
     private readonly IToeRunFactory _toeRunFactory;
-    private readonly ICloudPlatform _cloudPlatform;
+    private readonly ICloudPlatform? _cloudPlatform;
     
     /// <summary>
     /// Initializes a new instance of the ToeParallelRunner class.
     /// </summary>
     /// <param name="config">The configuration for the ToeRunner.</param>
     /// <param name="toeRunFactory">The factory for creating IToeRun instances.</param>
-    /// <param name="cloudPlatform">Optional cloud platform for data storage.</param>
-    public ToeParallelRunner(ToeRunnerConfig config, IToeRunFactory toeRunFactory, ICloudPlatform cloudPlatform)
+    /// <param name="cloudPlatform">Optional cloud platform for data storage, can be null.</param>
+    public ToeParallelRunner(ToeRunnerConfig config, IToeRunFactory toeRunFactory, ICloudPlatform? cloudPlatform)
     {
         _config = config ?? throw new ArgumentNullException(nameof(config));
         _toeRunFactory = toeRunFactory ?? throw new ArgumentNullException(nameof(toeRunFactory));
@@ -117,6 +117,12 @@ public class ToeParallelRunner
     /// <returns>The ID of the created batch record, or null if creation failed.</returns>
     private async Task<string?> CreateBatchRecord(ToeJob job, int threadId)
     {
+        if (_cloudPlatform == null)
+        {
+            Console.WriteLine("No cloud platform available, skipping batch record creation.");
+            return null;
+        }
+        
         try
         {
             var batchToeRun = new BatchToeRun
@@ -143,10 +149,14 @@ public class ToeParallelRunner
     /// Updates a batch record in the cloud platform with completion information.
     /// </summary>
     /// <param name="batchId">The ID of the batch record to update.</param>
-    /// <param name="job">The job that was processed.</param>
-    /// <param name="threadId">The ID of the thread that processed the job.</param>
     private async Task UpdateBatchRecord(string batchId)
     {
+        if (_cloudPlatform == null)
+        {
+            Console.WriteLine("No cloud platform available, skipping batch record update.");
+            return;
+        }
+        
         try
         {
             var batchToeRun = new BatchToeRun

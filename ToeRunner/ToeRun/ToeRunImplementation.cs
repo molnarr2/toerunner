@@ -18,10 +18,10 @@ namespace ToeRunner.ToeRun
         private readonly ToeRunnerConfig _config;
         private readonly ToeJob _job;
         private readonly int _id;
-        private readonly string _batchToeRunId;
+        private readonly string? _batchToeRunId;
         private readonly decimal _uploadStrategyPercentage;
         private readonly FilterPercentageType _filterPercentageType;
-        private readonly ICloudPlatform _cloudPlatform;
+        private readonly ICloudPlatform? _cloudPlatform;
 
         /// <summary>
         /// Constructor for ToeRunImplementation
@@ -29,14 +29,14 @@ namespace ToeRunner.ToeRun
         /// <param name="config">Configuration for the ToeRunner</param>
         /// <param name="job">The ToeJob to run</param>
         /// <param name="id">Unique identifier for this run</param>
-        /// <param name="batchToeRunId">The ID of the batch run in Firebase</param>
-        /// <param name="cloudPlatform">Cloud platform for uploading results</param>
+        /// <param name="batchToeRunId">The ID of the batch run in Firebase, can be null</param>
+        /// <param name="cloudPlatform">Cloud platform for uploading results, can be null</param>
         public ToeRunImplementation(
             ToeRunnerConfig config, 
             ToeJob job, 
             int id, 
-            string batchToeRunId,
-            ICloudPlatform cloudPlatform)
+            string? batchToeRunId,
+            ICloudPlatform? cloudPlatform)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _job = job ?? throw new ArgumentNullException(nameof(job));
@@ -54,6 +54,32 @@ namespace ToeRunner.ToeRun
         {
             try
             {
+                // Validate required configuration
+                if (string.IsNullOrEmpty(_config.WorkspacePath))
+                {
+                    throw new InvalidOperationException("WorkspacePath is not configured in ToeRunnerConfig");
+                }
+                
+                if (string.IsNullOrEmpty(_config.BigToeExecutablePath))
+                {
+                    throw new InvalidOperationException("BigToeExecutablePath is not configured in ToeRunnerConfig");
+                }
+                
+                if (string.IsNullOrEmpty(_config.TinyToeExecutablePath))
+                {
+                    throw new InvalidOperationException("TinyToeExecutablePath is not configured in ToeRunnerConfig");
+                }
+                
+                if (string.IsNullOrEmpty(_job.BigToeEnvironmentConfigPath))
+                {
+                    throw new InvalidOperationException("BigToeEnvironmentConfigPath is not configured in ToeJob");
+                }
+                
+                if (string.IsNullOrEmpty(_job.TinyToeConfigPath))
+                {
+                    throw new InvalidOperationException("TinyToeConfigPath is not configured in ToeJob");
+                }
+                
                 // 1. Create required directories
                 string baseWorkspacePath = Path.Combine(_config.WorkspacePath, _id.ToString());
                 string configFolderPath = Path.Combine(baseWorkspacePath, "config");
@@ -122,14 +148,18 @@ namespace ToeRunner.ToeRun
                     _filterPercentageType);
                 Console.WriteLine($"Filtered to {filteredResults.Count} strategy results after applying filter.");
                 
-                // 10. Upload strategies to Firebase
-                if (filteredResults.Any())
+                // 10. Upload strategies to Firebase if cloud platform is available
+                if (filteredResults.Any() && _cloudPlatform != null && !string.IsNullOrEmpty(_batchToeRunId))
                 {
                     await _cloudPlatform.AddStrategyResults(_batchToeRunId, filteredResults);
                     Console.WriteLine($"Uploaded {filteredResults.Count} strategy results to Firebase with batch ID: {_batchToeRunId}");
                 }
+                else if (filteredResults.Any() && (_cloudPlatform == null || string.IsNullOrEmpty(_batchToeRunId)))
+                {
+                    Console.WriteLine($"Found {filteredResults.Count} strategy results but cloud platform or batch ID is not available. Results not uploaded.");
+                }
                 else {
-                    Console.WriteLine($"No successful strategies found after applying filter. No results uploaded to Firebase.");
+                    Console.WriteLine($"No successful strategies found after applying filter. No results uploaded.");
                 }
             }
             catch (Exception ex)

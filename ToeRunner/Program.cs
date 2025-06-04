@@ -15,6 +15,7 @@ namespace ToeRunner;
 
 public class Program
 {
+    
     public static async Task Main(string[] args)
     {
         try
@@ -49,26 +50,22 @@ public class Program
 
             Console.WriteLine($"Configuration loaded successfully. Parallel runners: {config.ParallelRunners}");
             
-            // Initialize Firebase if enabled
-            ICloudPlatform? cloudPlatform = null;
-            try
+            // Initialize cloud platform if enabled
+            ICloudPlatform? cloudPlatform = await InitializeCloudPlatformAsync(config);
+            if (cloudPlatform == null)
             {
-                Console.WriteLine("Initializing Firebase connection...");
-                var firebaseFirestore = new FirebaseFirestore();
-                await firebaseFirestore.Initialize(config.Firebase.ProjectId, config.Firebase.ApiKey);
-                cloudPlatform = firebaseFirestore;
-                Console.WriteLine("Firebase connection established successfully.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Failed to initialize Firebase: {ex.Message}");
-                return;
+                return; // Error already logged in InitializeCloudPlatformAsync
             }
 
             // 3. Create an instance of ToeRunFactory
             IToeRunFactory toeRunFactory = new ToeRunFactory(config, cloudPlatform);
 
             // 4. Create a list of ToeJob via the ToeJobFactory
+            if (config.Runs == null)
+            {
+                Console.WriteLine("Error: No runs configured in the configuration file.");
+                return;
+            }
             var toeJobs = ToeJobFactory.CreateToeJobs(config.Runs);
             Console.WriteLine($"Created {toeJobs.Count} jobs to process.");
 
@@ -86,6 +83,33 @@ public class Program
         {
             Console.WriteLine($"An error occurred: {ex.Message}");
             Console.WriteLine(ex.StackTrace);
+        }
+    }
+    
+    /// <summary>
+    /// Initializes the cloud platform based on configuration
+    /// </summary>
+    /// <param name="config">The application configuration</param>
+    /// <returns>An initialized ICloudPlatform instance or null if initialization failed</returns>
+    private static async Task<ICloudPlatform?> InitializeCloudPlatformAsync(ToeRunnerConfig config)
+    {
+        try
+        {
+            var cloudPlatformFactory = new CloudPlatformFactory(config);
+            var cloudPlatform = await cloudPlatformFactory.CreateCloudPlatformAsync();
+            
+            if (cloudPlatform == null)
+            {
+                Console.WriteLine("Failed to initialize cloud platform. Exiting.");
+                return null;
+            }
+            
+            return cloudPlatform;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to initialize cloud platform: {ex.Message}");
+            return null;
         }
     }
 }

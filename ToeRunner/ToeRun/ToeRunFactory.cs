@@ -15,8 +15,8 @@ public class ToeRunFactory : IToeRunFactory
     /// Constructor for ToeRunFactory
     /// </summary>
     /// <param name="config">Configuration for the ToeRunner</param>
-    /// <param name="cloudPlatform">Cloud platform for uploading results</param>
-    public ToeRunFactory(ToeRunnerConfig config, ICloudPlatform cloudPlatform)
+    /// <param name="cloudPlatform">Cloud platform for uploading results, can be null</param>
+    public ToeRunFactory(ToeRunnerConfig config, ICloudPlatform? cloudPlatform)
     {
         _config = config ?? throw new ArgumentNullException(nameof(config));
         _cloudPlatform = cloudPlatform;

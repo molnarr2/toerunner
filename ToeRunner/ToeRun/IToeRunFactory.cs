@@ -12,7 +12,7 @@ public interface IToeRunFactory
     /// </summary>
     /// <param name="job">The ToeJob to be executed</param>
     /// <param name="id">Unique identifier for the run</param>
-    /// <param name="batchToeRunId">The ID of the batch run in Firebase</param>
+    /// <param name="batchToeRunId">The ID of the batch run in Firebase, can be null</param>
     /// <returns>An IToeRun implementation</returns>
-    IToeRun Create(ToeJob job, int id, string batchToeRunId);
+    IToeRun Create(ToeJob job, int id, string? batchToeRunId);
 }
