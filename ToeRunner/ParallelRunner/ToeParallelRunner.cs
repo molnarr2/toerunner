@@ -102,7 +102,7 @@ public class ToeParallelRunner
             // Update batch record with completion time if cloud platform is available
             if (_cloudPlatform != null && !string.IsNullOrEmpty(batchId))
             {
-                await UpdateBatchRecord(batchId, job, threadId);
+                await UpdateBatchRecord(batchId);
             }
             
             Console.WriteLine($"Thread {threadId} completed job: {job.Name}");
@@ -154,7 +154,7 @@ public class ToeParallelRunner
     /// <param name="batchId">The ID of the batch record to update.</param>
     /// <param name="job">The job that was processed.</param>
     /// <param name="threadId">The ID of the thread that processed the job.</param>
-    private async Task UpdateBatchRecord(string batchId, ToeJob job, int threadId)
+    private async Task UpdateBatchRecord(string batchId)
     {
         try
         {
@@ -171,9 +171,6 @@ public class ToeParallelRunner
             
             await _cloudPlatform.SaveBatchToeRun(batchToeRun);
             Console.WriteLine($"Updated batch record with ID: {batchId}");
-            
-            // Add strategy results
-            await AddStrategyResults(batchId, job, threadId);
         }
         catch (Exception ex)
         {
@@ -181,31 +178,4 @@ public class ToeParallelRunner
         }
     }
     
-    /// <summary>
-    /// Adds strategy results to the cloud platform.
-    /// </summary>
-    /// <param name="batchId">The ID of the batch record to associate with the strategy results.</param>
-    /// <param name="job">The job that was processed.</param>
-    /// <param name="threadId">The ID of the thread that processed the job.</param>
-    private async Task AddStrategyResults(string batchId, ToeJob job, int threadId)
-    {
-        try
-        {
-            if (_cloudPlatform == null || string.IsNullOrEmpty(batchId))
-            {
-                return;
-            }
-            
-            // The strategy results are now handled directly in the ToeRunImplementation class
-            // This method is kept for backward compatibility and logging purposes
-            Console.WriteLine($"Strategy results for batch ID: {batchId} are being handled by ToeRunImplementation");
-            
-            // Add a minimal delay to make this method properly async
-            await Task.Delay(1);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Failed to add strategy results: {ex.Message}");
-        }
-    }
 }
