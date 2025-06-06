@@ -15,6 +15,8 @@ namespace ToeRunner.ToeRun
     /// </summary>
     public class ToeRunImplementation : IToeRun
     {
+        private static int _globalInstanceCounter = 0;
+        private readonly int _uniqueInstanceId;
         private readonly ToeRunnerConfig _config;
         private readonly ToeJob _job;
         private readonly int _id;
@@ -45,6 +47,15 @@ namespace ToeRunner.ToeRun
             _uploadStrategyPercentage = _config.UploadStrategyPercentage;
             _filterPercentageType = _config.FilterProfitPercentage;
             _cloudPlatform = cloudPlatform;
+            _uniqueInstanceId = System.Threading.Interlocked.Increment(ref _globalInstanceCounter);
+        }
+
+        private void PrintJobInfo()
+        {
+            Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Job Info:");
+            Console.WriteLine($"[ToeRun-{_uniqueInstanceId}]   Name: {_job.Name}");
+            Console.WriteLine($"[ToeRun-{_uniqueInstanceId}]   BigToe Config: {_job.BigToeEnvironmentConfigPath}");
+            Console.WriteLine($"[ToeRun-{_uniqueInstanceId}]   TinyToe Config: {_job.TinyToeConfigPath}");
         }
 
         /// <summary>
@@ -54,117 +65,118 @@ namespace ToeRunner.ToeRun
         {
             try
             {
+                int step = 1;
+                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Step {step++}: Starting RunAsync");
+                PrintJobInfo();
                 // Validate required configuration
                 if (string.IsNullOrEmpty(_config.WorkspacePath))
                 {
-                    throw new InvalidOperationException("WorkspacePath is not configured in ToeRunnerConfig");
+                    throw new InvalidOperationException($"[ToeRun-{_uniqueInstanceId}] WorkspacePath is not configured in ToeRunnerConfig");
                 }
-                
                 if (string.IsNullOrEmpty(_config.BigToeExecutablePath))
                 {
-                    throw new InvalidOperationException("BigToeExecutablePath is not configured in ToeRunnerConfig");
+                    throw new InvalidOperationException($"[ToeRun-{_uniqueInstanceId}] BigToeExecutablePath is not configured in ToeRunnerConfig");
                 }
-                
                 if (string.IsNullOrEmpty(_config.TinyToeExecutablePath))
                 {
-                    throw new InvalidOperationException("TinyToeExecutablePath is not configured in ToeRunnerConfig");
+                    throw new InvalidOperationException($"[ToeRun-{_uniqueInstanceId}] TinyToeExecutablePath is not configured in ToeRunnerConfig");
                 }
-                
                 if (string.IsNullOrEmpty(_job.BigToeEnvironmentConfigPath))
                 {
-                    throw new InvalidOperationException("BigToeEnvironmentConfigPath is not configured in ToeJob");
+                    throw new InvalidOperationException($"[ToeRun-{_uniqueInstanceId}] BigToeEnvironmentConfigPath is not configured in ToeJob");
                 }
-                
                 if (string.IsNullOrEmpty(_job.TinyToeConfigPath))
                 {
-                    throw new InvalidOperationException("TinyToeConfigPath is not configured in ToeJob");
+                    throw new InvalidOperationException($"[ToeRun-{_uniqueInstanceId}] TinyToeConfigPath is not configured in ToeJob");
                 }
+                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Step {step++}: Validated configuration");
                 
                 // 1. Create required directories
                 string baseWorkspacePath = Path.Combine(_config.WorkspacePath, _id.ToString());
                 string configFolderPath = Path.Combine(baseWorkspacePath, "config");
                 string tinyToeOutputPath = Path.Combine(baseWorkspacePath, "outputTinyToe");
                 string bigToeOutputPath = Path.Combine(baseWorkspacePath, "outputBigToe");
-
                 CreateDirectoryIfNotExists(configFolderPath);
                 CreateDirectoryIfNotExists(tinyToeOutputPath);
                 CreateDirectoryIfNotExists(bigToeOutputPath);
-
+                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Step {step++}: Created required directories");
+                
                 // 2. Create output file paths
                 string tinyToeOutputFilePath = Path.Combine(tinyToeOutputPath, $"{_job.Name}_tinytoe_output.json");
                 string bigToeOutputFilePath = Path.Combine(bigToeOutputPath, $"{_job.Name}_bigtoe_output.json");
-
+                
                 // 3. Create config file paths
                 string bigToeConfigFilePath = Path.Combine(configFolderPath, $"{_job.Name}_bigtoe_config.json");
                 string tinyToeConfigFilePath = Path.Combine(configFolderPath, $"{_job.Name}_tinytoe_config.json");
-
+                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Step {step++}: Prepared file paths");
+                
                 // 4. Replace strings in config files and save to new location
                 bool bigToeConfigSuccess = FileStringReplacer.ReplaceStringInFile(
                     _job.BigToeEnvironmentConfigPath,
                     "$OUTPUT$",
                     bigToeOutputFilePath,
                     bigToeConfigFilePath);
-
                 if (!bigToeConfigSuccess)
                 {
-                    throw new Exception($"Failed to create BigToe config file for job {_job.Name}");
+                    throw new Exception($"[ToeRun-{_uniqueInstanceId}] Failed to create BigToe config file for job {_job.Name}");
                 }
-
                 bool tinyToeConfigSuccess = FileStringReplacer.ReplaceStringInFile(
                     _job.TinyToeConfigPath,
                     "$OUTPUT$",
                     tinyToeOutputFilePath,
                     tinyToeConfigFilePath);
-
                 if (!tinyToeConfigSuccess)
                 {
-                    throw new Exception($"Failed to create TinyToe config file for job {_job.Name}");
+                    throw new Exception($"[ToeRun-{_uniqueInstanceId}] Failed to create TinyToe config file for job {_job.Name}");
                 }
-
+                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Step {step++}: Created config files");
+                
                 // 5. Run TinyToe executable
+                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Step {step++}: Running TinyToe executable");
                 await RunProcessAsync(_config.TinyToeExecutablePath, tinyToeConfigFilePath);
-
+                
                 // 6. Run BigToe executable with TinyToe output
+                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Step {step++}: Running BigToe executable");
                 await RunProcessAsync(_config.BigToeExecutablePath, $"{bigToeConfigFilePath} {tinyToeOutputFilePath}");
-
+                
                 // 7. Load the result JSON file from BigToe
+                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Step {step++}: Loading BigToe result file");
                 StrategyEvaluationResult? strategyEvaluationResult = LoadBigToeResultFile(bigToeOutputFilePath);
-                Console.WriteLine($"Loaded BigToe result with {strategyEvaluationResult?.ExecutorEvaluationResults?.Count ?? 0} executor evaluation results.");
+                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Loaded BigToe result with {strategyEvaluationResult?.ExecutorEvaluationResults?.Count ?? 0} executor evaluation results.");
                 
                 // 8. Convert to list of StrategyResult
                 if (strategyEvaluationResult == null)
                 {
-                    Console.WriteLine("Strategy evaluation result is null. Cannot convert to strategy results.");
+                    Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Strategy evaluation result is null. Cannot convert to strategy results.");
                     return;
                 }
-                
                 List<StrategyResult> strategyResults = StrategyResultConverter.ConvertToStrategyResults(strategyEvaluationResult);
-                Console.WriteLine($"Converted {strategyResults.Count} strategy results.");
+                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Converted {strategyResults.Count} strategy results.");
                 
                 // 9. Filter out failed strategies
                 List<StrategyResult> filteredResults = StrategyFilter.FilterFailedStrategies(
                     strategyResults, 
                     _uploadStrategyPercentage, 
                     _filterPercentageType);
-                Console.WriteLine($"Filtered to {filteredResults.Count} strategy results after applying filter.");
+                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Filtered to {filteredResults.Count} strategy results after applying filter.");
                 
                 // 10. Upload strategies to Firebase if cloud platform is available
                 if (filteredResults.Any() && _cloudPlatform != null && !string.IsNullOrEmpty(_batchToeRunId))
                 {
                     await _cloudPlatform.AddStrategyResults(_batchToeRunId, filteredResults);
-                    Console.WriteLine($"Uploaded {filteredResults.Count} strategy results to Firebase with batch ID: {_batchToeRunId}");
+                    Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Uploaded {filteredResults.Count} strategy results to Firebase with batch ID: {_batchToeRunId}");
                 }
                 else if (filteredResults.Any() && (_cloudPlatform == null || string.IsNullOrEmpty(_batchToeRunId)))
                 {
-                    Console.WriteLine($"Found {filteredResults.Count} strategy results but cloud platform or batch ID is not available. Results not uploaded.");
+                    Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Found {filteredResults.Count} strategy results but cloud platform or batch ID is not available. Results not uploaded.");
                 }
                 else {
-                    Console.WriteLine($"No successful strategies found after applying filter. No results uploaded.");
+                    Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] No successful strategies found after applying filter. No results uploaded.");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in ToeRunImplementation.RunAsync: {ex.Message}");
+                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Error in ToeRunImplementation.RunAsync: {ex.Message}");
                 throw;
             }
         }
@@ -180,20 +192,18 @@ namespace ToeRunner.ToeRun
             {
                 if (!File.Exists(filePath))
                 {
-                    throw new FileNotFoundException($"BigToe result file not found at {filePath}");
+                    throw new FileNotFoundException($"[ToeRun-{_uniqueInstanceId}] BigToe result file not found at {filePath}");
                 }
-
                 string jsonContent = File.ReadAllText(filePath);
                 var options = new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 };
-
                 return JsonSerializer.Deserialize<StrategyEvaluationResult>(jsonContent, options);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading BigToe result file: {ex.Message}");
+                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Error loading BigToe result file: {ex.Message}");
                 throw;
             }
         }
@@ -227,29 +237,23 @@ namespace ToeRunner.ToeRun
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
-
             using (var process = new Process { StartInfo = processStartInfo })
             {
                 process.Start();
-                
                 // Read output and error streams asynchronously
                 var outputTask = process.StandardOutput.ReadToEndAsync();
                 var errorTask = process.StandardError.ReadToEndAsync();
-                
                 // Wait for the process to exit
                 await Task.Run(() => process.WaitForExit());
-                
                 string output = await outputTask;
                 string error = await errorTask;
-                
                 if (!string.IsNullOrEmpty(error))
                 {
-                    Console.WriteLine($"Process error output: {error}");
+                    Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Process error output: {error}");
                 }
-                
                 if (process.ExitCode != 0)
                 {
-                    throw new Exception($"Process exited with code {process.ExitCode}. Error: {error}");
+                    throw new Exception($"[ToeRun-{_uniqueInstanceId}] Process exited with code {process.ExitCode}. Error: {error}");
                 }
             }
         }

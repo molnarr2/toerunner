@@ -40,6 +40,7 @@ public class ToeParallelRunner
             Console.WriteLine("No jobs to process.");
             return;
         }
+        PrintJobList(jobs);
         
         // Convert the list to a thread-safe queue
         var jobQueue = new ConcurrentQueue<ToeJob>(jobs);
@@ -172,5 +173,16 @@ public class ToeParallelRunner
         {
             Console.WriteLine($"Failed to update batch record: {ex.Message}");
         }
+    }
+
+    private void PrintJobList(List<ToeJob> jobs)
+    {
+        Console.WriteLine("=== Job List ===");
+        int idx = 1;
+        foreach (var job in jobs)
+        {
+            Console.WriteLine($"Job #{idx++}: Name: {job.Name}, BigToe Config: {job.BigToeEnvironmentConfigPath}, TinyToe Config: {job.TinyToeConfigPath}");
+        }
+        Console.WriteLine("================");
     }
 }
