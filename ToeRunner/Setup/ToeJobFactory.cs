@@ -26,7 +26,7 @@ public static class ToeJobFactory
                 {
                     var toeJob = new ToeJob
                     {
-                        Name = $"{runConfig.Name}_{count}",
+                        Name = $"{SanitizePathName(runConfig.Name)}_{count}",
                         BigToeEnvironmentConfigPath = runConfig.BigToeEnvironmentConfigPath,
                         TinyToeConfigPath = tinyToeConfigPath
                     };
@@ -37,5 +37,24 @@ public static class ToeJobFactory
         }
         
         return toeJobs;
+    }
+
+    /// <summary>
+    /// Sanitizes a string by replacing invalid Unix path characters with underscores.
+    /// </summary>
+    /// <param name="name">The string to sanitize.</param>
+    /// <returns>A sanitized string safe for use in file paths.</returns>
+    private static string SanitizePathName(string name)
+    {
+        return name
+            .Replace('/', '_')
+            .Replace(':', '_')
+            .Replace('*', '_')
+            .Replace('?', '_')
+            .Replace('"', '_')
+            .Replace('<', '_')
+            .Replace('>', '_')
+            .Replace('|', '_')
+            .Replace(' ', '_');
     }
 }

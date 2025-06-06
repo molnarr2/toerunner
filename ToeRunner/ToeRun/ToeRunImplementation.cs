@@ -108,7 +108,7 @@ namespace ToeRunner.ToeRun
                 // 3. Create config file paths
                 string bigToeConfigFilePath = Path.Combine(configFolderPath, $"{_job.Name}_bigtoe_config.json");
                 string tinyToeConfigFilePath = Path.Combine(configFolderPath, $"{_job.Name}_tinytoe_config.json");
-                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Step {step++}: Prepared file paths");
+                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Step {step++}: Prepared file paths bigToeOutputFilePath: {bigToeOutputFilePath}");
                 
                 // 4. Replace strings in config files and save to new location
                 bool bigToeConfigSuccess = FileStringReplacer.ReplaceStringInFile(
@@ -132,7 +132,7 @@ namespace ToeRunner.ToeRun
                 Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Step {step++}: Created config files");
                 
                 // 5. Run TinyToe executable
-                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Step {step++}: Running TinyToe executable");
+                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Step {step++}: Running TinyToe executable: {_config.TinyToeExecutablePath} {tinyToeConfigFilePath}");
                 await RunProcessAsync(_config.TinyToeExecutablePath, tinyToeConfigFilePath);
                 
                 // 6. Run BigToe executable with TinyToe output

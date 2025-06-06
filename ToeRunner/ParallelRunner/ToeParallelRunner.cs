@@ -52,7 +52,7 @@ public class ToeParallelRunner
         for (int i = 0; i < _config.ParallelRunners; i++)
         {
             var threadId = i + 1;
-            tasks.Add(Task.Run(() => ProcessJobsThread(jobQueue, threadId)));
+            tasks.Add(Task.Run(async () => await ProcessJobsThread(jobQueue, threadId)));
         }
         
         // Wait for all tasks to complete
@@ -66,11 +66,11 @@ public class ToeParallelRunner
     /// </summary>
     /// <param name="jobQueue">The thread-safe queue of jobs.</param>
     /// <param name="threadId">The ID of the thread.</param>
-    private void ProcessJobsThread(ConcurrentQueue<ToeJob> jobQueue, int threadId)
+    private async Task ProcessJobsThread(ConcurrentQueue<ToeJob> jobQueue, int threadId)
     {
         while (jobQueue.TryDequeue(out var job))
         {
-            ProcessJob(job, threadId);
+            await ProcessJob(job, threadId);
         }
         
         Console.WriteLine($"Thread {threadId} completed - no more jobs to process.");
@@ -81,7 +81,7 @@ public class ToeParallelRunner
     /// </summary>
     /// <param name="job">The job to process.</param>
     /// <param name="threadId">The ID of the thread processing the job.</param>
-    private async void ProcessJob(ToeJob job, int threadId)
+    private async Task ProcessJob(ToeJob job, int threadId)
     {
         Console.WriteLine($"Thread {threadId} processing job: {job.Name} (BigToe: {job.BigToeEnvironmentConfigPath}, TinyToe: {job.TinyToeConfigPath})");
         
