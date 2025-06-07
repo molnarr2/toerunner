@@ -1,4 +1,5 @@
 using Google.Cloud.Firestore;
+using ToeRunner.Firebase;
 
 namespace ToeRunner.Model.BigToe;
 
@@ -22,6 +23,6 @@ public class BuyConfig
 public class BuyStrategyConfig {
     [FirestoreProperty("n")]
     public string Name { get; set; }
-    [FirestoreProperty("p")]
-    public dynamic Parameters { get; set; }
+    [FirestoreProperty("p", ConverterType = typeof(DynamicToStringConverter))]
+    public object Parameters { get; set; }
 }

@@ -6,10 +6,10 @@ namespace ToeRunner.Model.BigToe;
 public class PlaybackSegmentDetails {
     [FirestoreProperty("id")]
     public string Id { get; set; }
-    [FirestoreProperty("fp")]
+    [FirestoreProperty("filepath")]
     public string FilePath { get; set; }
-    [FirestoreProperty("ud")]
+    [FirestoreProperty("useDex")]
     public Boolean UseDex { get; set; }
-    [FirestoreProperty("cp")]
+    [FirestoreProperty("cryptoTradingPair")]
     public CryptoTradingPair CryptoTradingPair { get; set; }
 }

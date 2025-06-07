@@ -1,5 +1,6 @@
 using ToeRunner.Model.BigToe;
 using Google.Cloud.Firestore;
+using ToeRunner.Firebase;
 
 namespace ToeRunner.Model.Firebase;
 
@@ -7,16 +8,16 @@ namespace ToeRunner.Model.Firebase;
 public class BatchToeRun {
     [FirestoreProperty("id")]
     public String Id { get; set; }
-    [FirestoreProperty("n")]
+    [FirestoreProperty("name")]
     public String Name { get; set; }
-    [FirestoreProperty("d")]
+    [FirestoreProperty("description")]
     public String Description { get; set; }
-    [FirestoreProperty("s")]
+    [FirestoreProperty("server")]
     public String Server { get; set; }
-    [FirestoreProperty("st")]
+    [FirestoreProperty("startTimestamp", ConverterType = typeof(DateTimeConverter))]
     public DateTime StartTimestamp { get; set; }
-    [FirestoreProperty("et")]
+    [FirestoreProperty("endTimestamp", ConverterType = typeof(DateTimeConverter))]
     public DateTime EndTimestamp { get; set; }
-    [FirestoreProperty("sd")]
+    [FirestoreProperty("segmentDetails")]
     public List<PlaybackSegmentDetails> SegmentDetails { get; set; }
 }

@@ -1,4 +1,5 @@
 using Google.Cloud.Firestore;
+using ToeRunner.Firebase;
 
 namespace ToeRunner.Model.BigToe;
 
@@ -35,13 +36,13 @@ public class ScheduledTradeExecutorStats {
     /// <summary>
     /// The time when the executor started
     /// </summary>
-    [FirestoreProperty("st")]
+    [FirestoreProperty("st", ConverterType = typeof(DateTimeConverter))]
     public DateTime StartTime { get; set; }
     
     /// <summary>
     /// The total running time of the executor
     /// </summary>
-    [FirestoreProperty("tr")]
+    [FirestoreProperty("tr", ConverterType = typeof(TimeSpanToSecondsConverter))]
     public TimeSpan TotalRunningTime { get; set; }
     
     /// <summary>

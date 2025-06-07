@@ -1,4 +1,5 @@
 using Google.Cloud.Firestore;
+using ToeRunner.Firebase;
 
 namespace ToeRunner.Model.BigToe;
 
@@ -53,12 +54,12 @@ public class BuyStats
     /// <summary>
     /// The time when the buy operation started
     /// </summary>
-    [FirestoreProperty("st")]
+    [FirestoreProperty("st", ConverterType = typeof(DateTimeConverter))]
     public DateTime StartTime { get; set; }
     
     /// <summary>
     /// The time when the buy operation finished
     /// </summary>
-    [FirestoreProperty("et")]
+    [FirestoreProperty("et", ConverterType = typeof(DateTimeConverter))]
     public DateTime EndTime { get; set; }
 }
