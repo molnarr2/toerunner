@@ -19,6 +19,9 @@ public class FirebaseStrategyResult {
 
     [FirestoreProperty("totalTrades")]
     public int TotalTrades { get; set; }
+    [FirestoreProperty("segmentIds")]
+    public List<string> SegmentIds { get; set; } = new List<string>();
+
     [FirestoreProperty("segmentCount")]
     public int SegmentCount { get; set; }
     

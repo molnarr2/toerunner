@@ -15,6 +15,8 @@ public enum FilterPercentageType {
 }
 
 public class ToeRunnerConfig {
+    public string Name {get; set;}
+    public string Server { get; set; }
     public int ParallelRunners { get; set; }
     public string? WorkspacePath { get; set; }
     public string? BigToeExecutablePath { get; set; }
