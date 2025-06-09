@@ -1,4 +1,5 @@
 using Google.Cloud.Firestore;
+using ToeRunner.Firebase;
 
 namespace ToeRunner.Model.BigToe;
 
@@ -45,26 +46,9 @@ public class CryptoTradingPair
     /// <summary>
     /// The timestamp when this market data was last updated
     /// </summary>
-    [FirestoreProperty("lu")]
+    [FirestoreProperty("lu", ConverterType = typeof(DateTimeConverter))]
     public DateTime LastUpdated { get; }
-
-    /// <summary>
-    /// Creates a new CryptoTradingPair instance
-    /// </summary>
-    public CryptoTradingPair(
-        string assetId,
-        string quoteAssetId,
-        string exchange,
-        bool isActive)
-    {
-        AssetId = assetId ?? throw new ArgumentNullException(nameof(assetId));
-        QuoteAssetId = quoteAssetId ?? throw new ArgumentNullException(nameof(quoteAssetId));
-        Exchange = exchange ?? throw new ArgumentNullException(nameof(exchange));
-        TradingPair = $"{AssetId}-{QuoteAssetId}";
-        IsActive = isActive;
-        LastUpdated = DateTime.Now;
-    }
-
+    
     /// <summary>
     /// Returns a string that represents the current object
     /// </summary>

@@ -17,19 +17,19 @@ namespace ToeRunner.Conversion
         /// </summary>
         /// <param name="evaluationResult">The StrategyEvaluationResult to convert</param>
         /// <returns>A List of StrategyResult objects</returns>
-        public static List<StrategyResult> ConvertToStrategyResults(StrategyEvaluationResult evaluationResult)
+        public static List<FirebaseStrategyResult> ConvertToStrategyResults(StrategyEvaluationResult evaluationResult)
         {
             if (evaluationResult == null || evaluationResult.ExecutorEvaluationResults == null)
             {
-                return new List<StrategyResult>();
+                return new List<FirebaseStrategyResult>();
             }
 
-            var results = new List<StrategyResult>();
+            var results = new List<FirebaseStrategyResult>();
 
             foreach (var executorEvalResult in evaluationResult.ExecutorEvaluationResults)
             {
                 // Create a new StrategyResult for each ExecutorEvaluationResult
-                var strategyResult = new StrategyResult
+                var strategyResult = new FirebaseStrategyResult
                 {
                     Id = Guid.NewGuid().ToString(),
                     Name = executorEvalResult.ExecutorName,

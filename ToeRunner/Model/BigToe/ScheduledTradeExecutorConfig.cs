@@ -6,14 +6,14 @@ namespace ToeRunner.Model.BigToe;
 [FirestoreData]
 public class ScheduledTradeExecutorConfig 
 {
-    [FirestoreProperty("st")]
+    [FirestoreProperty("strategies")]
     public required List<ExecutorStrategyConfig> Strategies { get; set; }
 }
 
 [FirestoreData]
 public class ExecutorStrategyConfig {
-    [FirestoreProperty("n")]
+    [FirestoreProperty("name")]
     public string Name { get; set; }
-    [FirestoreProperty("p", ConverterType = typeof(DynamicToStringConverter))]
+    [FirestoreProperty("parameters", ConverterType = typeof(DynamicToStringConverter))]
     public object Parameters { get; set; }
 }

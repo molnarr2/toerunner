@@ -4,12 +4,12 @@ namespace ToeRunner.Model.BigToe;
 
 [FirestoreData]
 public class ExecutorContainerConfig {
-    [FirestoreProperty("n")]
+    [FirestoreProperty("name")]
     public string Name { get; set; }
-    [FirestoreProperty("e")]
+    [FirestoreProperty("executor")]
     public ScheduledTradeExecutorConfig Executor { get; set; }
-    [FirestoreProperty("b")]
+    [FirestoreProperty("buy")]
     public BuyConfig? Buy { get; set; }
-    [FirestoreProperty("s")]
+    [FirestoreProperty("sell")]
     public SellConfig? Sell { get; set; }
 }

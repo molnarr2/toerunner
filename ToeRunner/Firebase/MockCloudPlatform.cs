@@ -10,7 +10,7 @@ namespace ToeRunner.Firebase;
 public class MockCloudPlatform : ICloudPlatform
 {
     private Dictionary<string, BatchToeRun> _batchToeRuns = new Dictionary<string, BatchToeRun>();
-    private Dictionary<string, List<StrategyResult>> _strategyResults = new Dictionary<string, List<StrategyResult>>();
+    private Dictionary<string, List<FirebaseStrategyResult>> _strategyResults = new Dictionary<string, List<FirebaseStrategyResult>>();
     
     public Task<FirestoreDb> Initialize(string projectId, string apiKey)
     {
@@ -35,7 +35,7 @@ public class MockCloudPlatform : ICloudPlatform
         return Task.FromResult(batchToeRun.Id);
     }
     
-    public Task AddStrategyResults(string batchToeRunId, List<StrategyResult> strategyResults)
+    public Task AddStrategyResults(string batchToeRunId, List<FirebaseStrategyResult> strategyResults)
     {
         if (string.IsNullOrEmpty(batchToeRunId))
             throw new ArgumentException("BatchToeRun ID cannot be null or empty", nameof(batchToeRunId));
@@ -44,7 +44,7 @@ public class MockCloudPlatform : ICloudPlatform
             throw new ArgumentException("Strategy results cannot be null or empty", nameof(strategyResults));
             
         if (!_strategyResults.ContainsKey(batchToeRunId))
-            _strategyResults[batchToeRunId] = new List<StrategyResult>();
+            _strategyResults[batchToeRunId] = new List<FirebaseStrategyResult>();
             
         foreach (var result in strategyResults)
         {

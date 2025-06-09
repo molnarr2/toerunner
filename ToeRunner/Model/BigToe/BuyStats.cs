@@ -18,25 +18,25 @@ public class BuyStats
     /// <summary>
     /// The amount of base currency bought
     /// </summary>
-    [FirestoreProperty("ab")]
+    [FirestoreProperty("ab", ConverterType = typeof(DecimalConverter))]
     public decimal AmountBought { get; set; }
     
     /// <summary>
     /// The average price paid per unit in quote currency
     /// </summary>
-    [FirestoreProperty("ap")]
+    [FirestoreProperty("ap", ConverterType = typeof(DecimalConverter))]
     public decimal AveragePrice { get; set; }
     
     /// <summary>
     /// The total cost in quote currency
     /// </summary>
-    [FirestoreProperty("tc")]
+    [FirestoreProperty("tc", ConverterType = typeof(DecimalConverter))]
     public decimal TotalCost { get; set; }
     
     /// <summary>
     /// The total fees paid for the transaction in quote currency
     /// </summary>
-    [FirestoreProperty("tf")]
+    [FirestoreProperty("tf", ConverterType = typeof(DecimalConverter))]
     public decimal TotalFees { get; set; }
     
     /// <summary>

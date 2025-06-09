@@ -18,14 +18,14 @@ namespace ToeRunner.Filter
         /// <param name="uploadStrategyPercentage">Percentage of strategies to keep (1.0 = 100%, 0.2 = 20%)</param>
         /// <param name="filterPercentageType">The profit percentage type to use for filtering</param>
         /// <returns>Filtered list of strategy results</returns>
-        public static List<StrategyResult> FilterFailedStrategies(
-            List<StrategyResult> strategies, 
+        public static List<FirebaseStrategyResult> FilterFailedStrategies(
+            List<FirebaseStrategyResult> strategies, 
             decimal uploadStrategyPercentage, 
             FilterPercentageType filterPercentageType)
         {
             if (strategies == null || !strategies.Any())
             {
-                return new List<StrategyResult>();
+                return new List<FirebaseStrategyResult>();
             }
 
             // Step 1: Filter out failed strategies (zero or negative profit)
@@ -33,7 +33,7 @@ namespace ToeRunner.Filter
             
             if (!successfulStrategies.Any())
             {
-                return new List<StrategyResult>();
+                return new List<FirebaseStrategyResult>();
             }
 
             // Step 2: Sort by the profit field corresponding to the filter type
@@ -59,24 +59,24 @@ namespace ToeRunner.Filter
         /// <summary>
         /// Gets the profit value from a strategy result based on the filter percentage type
         /// </summary>
-        /// <param name="strategy">The strategy result</param>
+        /// <param name="firebaseStrategy">The strategy result</param>
         /// <param name="filterPercentageType">The filter percentage type</param>
         /// <returns>The profit value</returns>
-        private static double GetProfitByType(StrategyResult strategy, FilterPercentageType filterPercentageType)
+        private static double GetProfitByType(FirebaseStrategyResult firebaseStrategy, FilterPercentageType filterPercentageType)
         {
             return filterPercentageType switch
             {
-                FilterPercentageType.p00 => strategy.TotalProfit00,
-                FilterPercentageType.p08 => strategy.TotalProfit08,
-                FilterPercentageType.p10 => strategy.TotalProfit10,
-                FilterPercentageType.p15 => strategy.TotalProfit15,
-                FilterPercentageType.p20 => strategy.TotalProfit20,
-                FilterPercentageType.p25 => strategy.TotalProfit25,
-                FilterPercentageType.p30 => strategy.TotalProfit30,
-                FilterPercentageType.p35 => strategy.TotalProfit35,
-                FilterPercentageType.p40 => strategy.TotalProfit40,
-                FilterPercentageType.p50 => strategy.TotalProfit50,
-                FilterPercentageType.p60 => strategy.TotalProfit60,
+                FilterPercentageType.p00 => firebaseStrategy.TotalProfit00,
+                FilterPercentageType.p08 => firebaseStrategy.TotalProfit08,
+                FilterPercentageType.p10 => firebaseStrategy.TotalProfit10,
+                FilterPercentageType.p15 => firebaseStrategy.TotalProfit15,
+                FilterPercentageType.p20 => firebaseStrategy.TotalProfit20,
+                FilterPercentageType.p25 => firebaseStrategy.TotalProfit25,
+                FilterPercentageType.p30 => firebaseStrategy.TotalProfit30,
+                FilterPercentageType.p35 => firebaseStrategy.TotalProfit35,
+                FilterPercentageType.p40 => firebaseStrategy.TotalProfit40,
+                FilterPercentageType.p50 => firebaseStrategy.TotalProfit50,
+                FilterPercentageType.p60 => firebaseStrategy.TotalProfit60,
                 _ => throw new ArgumentException($"Unsupported filter percentage type: {filterPercentageType}")
             };
         }

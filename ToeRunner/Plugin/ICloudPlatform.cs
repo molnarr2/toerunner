@@ -10,7 +10,7 @@ public interface ICloudPlatform {
     
     Task<string> AddBatchToeRun(BatchToeRun batchToeRun);
     
-    Task AddStrategyResults(string batchToeRunId, List<StrategyResult> strategyResults);
+    Task AddStrategyResults(string batchToeRunId, List<FirebaseStrategyResult> strategyResults);
     
     Task SaveBatchToeRun(BatchToeRun batchToeRun);
 }

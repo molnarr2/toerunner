@@ -9,14 +9,14 @@ namespace ToeRunner.Model.BigToe;
 [FirestoreData]
 public class SellConfig 
 {
-    [FirestoreProperty("st")]
+    [FirestoreProperty("strategies")]
     public List<SellStrategyConfig> Strategies { get; set; }
 }
 
 [FirestoreData]
 public class SellStrategyConfig {
-    [FirestoreProperty("n")]
+    [FirestoreProperty("name")]
     public string Name { get; set; }
-    [FirestoreProperty("p", ConverterType = typeof(DynamicToStringConverter))]
+    [FirestoreProperty("parameters", ConverterType = typeof(DynamicToStringConverter))]
     public object Parameters { get; set; }
 }

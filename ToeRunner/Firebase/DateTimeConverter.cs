@@ -1,4 +1,5 @@
 using Google.Cloud.Firestore;
+using System;
 
 namespace ToeRunner.Firebase;
 
@@ -9,14 +10,17 @@ public class DateTimeConverter : IFirestoreConverter<DateTime>
 {
     public object ToFirestore(DateTime value)
     {
-        return Timestamp.FromDateTime(value.ToUniversalTime());
+        // Ensure the DateTime is properly converted to UTC with the correct Kind
+        DateTime utcDateTime = DateTime.SpecifyKind(value.ToUniversalTime(), DateTimeKind.Utc);
+        return Timestamp.FromDateTime(utcDateTime);
     }
 
     public DateTime FromFirestore(object value)
     {
         if (value is Timestamp timestamp)
         {
-            return timestamp.ToDateTime();
+            // Ensure the returned DateTime has the correct Kind (Utc)
+            return DateTime.SpecifyKind(timestamp.ToDateTime(), DateTimeKind.Utc);
         }
         throw new ArgumentException($"Expected Timestamp but got {value?.GetType().Name ?? "null"}");
     }

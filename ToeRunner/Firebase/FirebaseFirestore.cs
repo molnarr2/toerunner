@@ -36,7 +36,7 @@ public class FirebaseFirestore : ICloudPlatform {
         return batchToeRun.Id;
     }
     
-    public async Task AddStrategyResults(string batchToeRunId, List<StrategyResult> strategyResults)
+    public async Task AddStrategyResults(string batchToeRunId, List<FirebaseStrategyResult> strategyResults)
     {
         if (string.IsNullOrEmpty(batchToeRunId))
             throw new ArgumentException("BatchToeRun ID cannot be null or empty", nameof(batchToeRunId));

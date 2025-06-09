@@ -12,17 +12,17 @@ public class BuyConfig
     /// <summary>
     /// The amount to buy in base currency units
     /// </summary>
-    [FirestoreProperty("a")]
+    [FirestoreProperty("amount", ConverterType = typeof(DecimalConverter))]
     public decimal Amount { get; set; }
  
-    [FirestoreProperty("st")]
+    [FirestoreProperty("strategies")]
     public List<BuyStrategyConfig> Strategies { get; set; }
 }
 
 [FirestoreData]
 public class BuyStrategyConfig {
-    [FirestoreProperty("n")]
+    [FirestoreProperty("name")]
     public string Name { get; set; }
-    [FirestoreProperty("p", ConverterType = typeof(DynamicToStringConverter))]
+    [FirestoreProperty("parameters", ConverterType = typeof(DynamicToStringConverter))]
     public object Parameters { get; set; }
 }
