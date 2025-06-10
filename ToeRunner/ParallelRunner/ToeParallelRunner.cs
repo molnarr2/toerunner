@@ -15,7 +15,7 @@ public class ToeParallelRunner
     private readonly IToeRunFactory _toeRunFactory;
     private readonly ICloudPlatform? _cloudPlatform;
     private int _totalStrategiesProcessed = 0;
-    private int _strategiesCounter = 0;
+    private int _jobRuns = 0;
     private readonly object _lockObject = new object();
     private const int STRATEGY_UPDATE_THRESHOLD = 10;
     
@@ -52,7 +52,7 @@ public class ToeParallelRunner
         Console.WriteLine($"Starting parallel processing of {jobs.Count} jobs with {_config.ParallelRunners} threads...");
         
         // Create a batch record if cloud platform is available
-        var batchId = await CreateBatchRecord();
+        var batchId = await CreateBatchRecord(jobQueue.Count);
 
         // Create tasks for each thread
         var tasks = new List<Task>();
@@ -64,6 +64,9 @@ public class ToeParallelRunner
         
         // Wait for all tasks to complete
         await Task.WhenAll(tasks);
+        
+        Console.WriteLine($"Updated batch record {batchId} with total strategies: {_totalStrategiesProcessed}");
+        await UpdateBatchToeRunAsync(batchId, _totalStrategiesProcessed);
         
         Console.WriteLine("All jobs have been processed successfully!");
     }
@@ -118,7 +121,7 @@ public class ToeParallelRunner
     /// Creates a batch record in the cloud platform.
     /// </summary>
     /// <returns>The ID of the created batch record, or null if creation failed.</returns>
-    private async Task<string?> CreateBatchRecord()
+    private async Task<string?> CreateBatchRecord(int jobQueueCount)
     {
         if (_cloudPlatform == null)
         {
@@ -134,6 +137,7 @@ public class ToeParallelRunner
                 ParallelRunners = _config.ParallelRunners,
                 Server = _config.Server,
                 StartTimestamp = DateTime.Now,
+                JobCount = jobQueueCount,
             };
             
             var batchId = await _cloudPlatform.AddBatchToeRun(batchToeRun);
@@ -154,25 +158,18 @@ public class ToeParallelRunner
             return;
         }
         
-        long totalStrategies;
-        bool shouldUpdate = false;
+        long totalStrategies = 0;
+        var shouldUpdate = false;
         
         lock (_lockObject)
         {
             _totalStrategiesProcessed += strategiesInJob;
-            _strategiesCounter += strategiesInJob;
+            _jobRuns++;
             
-            if (_strategiesCounter >= STRATEGY_UPDATE_THRESHOLD)
+            if (_jobRuns % STRATEGY_UPDATE_THRESHOLD == 0 & _jobRuns > 0)
             {
-                // Reset counter but keep total
-                _strategiesCounter = 0;
                 shouldUpdate = true;
                 totalStrategies = _totalStrategiesProcessed;
-            }
-            else
-            {
-                shouldUpdate = false;
-                totalStrategies = 0;
             }
         }
         

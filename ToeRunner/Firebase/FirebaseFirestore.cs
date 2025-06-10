@@ -98,11 +98,13 @@ public class FirebaseFirestore : ICloudPlatform {
             .Document(_userId)
             .Collection(BatchToeRunCollection)
             .Document(batchToeRunId);
+
+        var endTimestamp = new DateTimeConverter().ToFirestore(DateTime.Now);
         
         // Update only the EndTimestamp and TotalStrategies fields
         Dictionary<string, object> updates = new Dictionary<string, object>
         {
-            { "endTimestamp", DateTime.Now },
+            { "endTimestamp", endTimestamp },
             { "totalStrategies", totalStrategies }
         };
         

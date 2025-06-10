@@ -23,4 +23,7 @@ public class BatchToeRun {
     
     [FirestoreProperty("totalStrategies")]
     public long TotalStrategies { get; set; }
+
+    [FirestoreProperty("uploadedStrategies")]
+    public long UploadedStrategies { get; set; }
 }
