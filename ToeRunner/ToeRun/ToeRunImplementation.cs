@@ -25,6 +25,7 @@ namespace ToeRunner.ToeRun
         private readonly FilterPercentageType _filterPercentageType;
         private readonly ICloudPlatform? _cloudPlatform;
         private int _strategyCount = 0;
+        private int _uploadedStrategyCount = 0;
 
         /// <summary>
         /// Constructor for ToeRunImplementation
@@ -166,7 +167,8 @@ namespace ToeRunner.ToeRun
                 if (filteredResults.Any() && _cloudPlatform != null && !string.IsNullOrEmpty(_batchToeRunId))
                 {
                     await _cloudPlatform.AddStrategyResults(_batchToeRunId, filteredResults);
-                    Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Uploaded {filteredResults.Count} strategy results to Firebase with batch ID: {_batchToeRunId}");
+                    _uploadedStrategyCount = filteredResults.Count;
+                    Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Uploaded {_uploadedStrategyCount} strategy results to Firebase with batch ID: {_batchToeRunId}");
                 }
                 else if (filteredResults.Any() && (_cloudPlatform == null || string.IsNullOrEmpty(_batchToeRunId)))
                 {
@@ -231,6 +233,11 @@ namespace ToeRunner.ToeRun
         public int GetStrategyCount()
         {
             return _strategyCount;
+        }
+        
+        public int GetUploadedStrategyCount()
+        {
+            return _uploadedStrategyCount;
         }
         
         private async Task RunProcessAsync(string executablePath, string arguments)

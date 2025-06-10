@@ -6,15 +6,16 @@ namespace ToeRunner.Model.Firebase;
 [FirestoreData]
 public class BatchToeRun {
     [FirestoreProperty("id")]
-    public String Id { get; set; }
+    public string Id { get; set; }
     [FirestoreProperty("name")] 
-    public String Name { get; set; }
+    public string Name { get; set; }
     [FirestoreProperty("parallelRunners")] 
     public int ParallelRunners { get; set; }
     [FirestoreProperty("server")]
-    public String Server { get; set; }
+    public string Server { get; set; }
     [FirestoreProperty("startTimestamp", ConverterType = typeof(DateTimeConverter))]
     public DateTime StartTimestamp { get; set; }
+    
     [FirestoreProperty("endTimestamp", ConverterType = typeof(DateTimeConverter))]
     public DateTime EndTimestamp { get; set; }
     
@@ -23,7 +24,7 @@ public class BatchToeRun {
     
     [FirestoreProperty("totalStrategies")]
     public long TotalStrategies { get; set; }
-
+    
     [FirestoreProperty("uploadedStrategies")]
     public long UploadedStrategies { get; set; }
 }

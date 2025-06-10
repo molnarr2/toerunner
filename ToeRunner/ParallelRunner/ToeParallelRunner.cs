@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using ToeRunner.Model;
 using ToeRunner.Model.Firebase;
@@ -15,6 +16,7 @@ public class ToeParallelRunner
     private readonly IToeRunFactory _toeRunFactory;
     private readonly ICloudPlatform? _cloudPlatform;
     private int _totalStrategiesProcessed = 0;
+    private int _totalUploadedStrategies = 0;
     private int _jobRuns = 0;
     private readonly object _lockObject = new object();
     private const int STRATEGY_UPDATE_THRESHOLD = 10;
@@ -65,8 +67,8 @@ public class ToeParallelRunner
         // Wait for all tasks to complete
         await Task.WhenAll(tasks);
         
-        Console.WriteLine($"Updated batch record {batchId} with total strategies: {_totalStrategiesProcessed}");
-        await UpdateBatchToeRunAsync(batchId, _totalStrategiesProcessed);
+        Console.WriteLine($"Updated batch record {batchId} with total strategies: {_totalStrategiesProcessed}, uploaded strategies: {_totalUploadedStrategies}");
+        await UpdateBatchToeRunAsync(batchId, _totalStrategiesProcessed, _totalUploadedStrategies);
         
         Console.WriteLine("All jobs have been processed successfully!");
     }
@@ -107,9 +109,10 @@ public class ToeParallelRunner
             
             // Get the strategy count and update the synchronized counter
             int strategiesInJob = toeRun.GetStrategyCount();
-            await UpdateStrategyCountAsync(strategiesInJob, batchId);
+            int uploadedStrategiesInJob = toeRun.GetUploadedStrategyCount();
+            await UpdateStrategyCountAsync(strategiesInJob, uploadedStrategiesInJob, batchId);
             
-            Console.WriteLine($"Thread {threadId} completed job: {job.Name} with {strategiesInJob} strategies");
+            Console.WriteLine($"Thread {threadId} completed job: {job.Name} with {strategiesInJob} strategies, {uploadedStrategiesInJob} uploaded");
         }
         catch (Exception ex)
         {
@@ -133,6 +136,7 @@ public class ToeParallelRunner
         {
             var batchToeRun = new BatchToeRun
             {
+                Id = Guid.NewGuid().ToString(),
                 Name = _config.Name,
                 ParallelRunners = _config.ParallelRunners,
                 Server = _config.Server,
@@ -151,7 +155,7 @@ public class ToeParallelRunner
         }
     }
 
-    private async Task UpdateStrategyCountAsync(int strategiesInJob, string? batchId)
+    private async Task UpdateStrategyCountAsync(int strategiesInJob, int uploadedStrategiesInJob, string? batchId)
     {
         if (string.IsNullOrEmpty(batchId) || _cloudPlatform == null)
         {
@@ -159,17 +163,20 @@ public class ToeParallelRunner
         }
         
         long totalStrategies = 0;
+        long totalUploadedStrategies = 0;
         var shouldUpdate = false;
         
         lock (_lockObject)
         {
             _totalStrategiesProcessed += strategiesInJob;
+            _totalUploadedStrategies += uploadedStrategiesInJob;
             _jobRuns++;
             
             if (_jobRuns % STRATEGY_UPDATE_THRESHOLD == 0 & _jobRuns > 0)
             {
                 shouldUpdate = true;
                 totalStrategies = _totalStrategiesProcessed;
+                totalUploadedStrategies = _totalUploadedStrategies;
             }
         }
         
@@ -177,18 +184,18 @@ public class ToeParallelRunner
         if (shouldUpdate)
         {
             // Use await instead of fire-and-forget
-            await UpdateBatchToeRunAsync(batchId, totalStrategies);
+            await UpdateBatchToeRunAsync(batchId, totalStrategies, totalUploadedStrategies);
         }
     }
     
-    private async Task UpdateBatchToeRunAsync(string batchId, long totalStrategies)
+    private async Task UpdateBatchToeRunAsync(string? batchId, long totalStrategies, long totalUploadedStrategies)
     {
         try
         {
-            if (_cloudPlatform != null)
+            if (_cloudPlatform != null && !string.IsNullOrEmpty(batchId))
             {
-                await _cloudPlatform.UpdateBatchToeRun(batchId, totalStrategies);
-                Console.WriteLine($"Updated batch record {batchId} with total strategies: {totalStrategies}");
+                await _cloudPlatform.UpdateBatchToeRun(batchId, totalStrategies, totalUploadedStrategies);
+                Console.WriteLine($"Updated batch record {batchId} with total strategies: {totalStrategies}, uploaded strategies: {totalUploadedStrategies}");
             }
         }
         catch (Exception ex)

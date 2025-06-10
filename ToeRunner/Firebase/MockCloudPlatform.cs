@@ -60,7 +60,7 @@ public class MockCloudPlatform : ICloudPlatform
         return Task.CompletedTask;
     }
 
-    public Task UpdateBatchToeRun(string batchToeRunId, long totalStrategies) {
+    public Task UpdateBatchToeRun(string batchToeRunId, long totalStrategies, long uploadedStrategies) {
         Console.WriteLine($"[MOCK] Update BatchtoeRun totalStrategies: {totalStrategies} BatchToeRun ID: {batchToeRunId}");
         return Task.CompletedTask;
     }
