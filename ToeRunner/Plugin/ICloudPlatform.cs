@@ -1,16 +1,14 @@
 using Google.Cloud.Firestore;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using ToeRunner.Model.Firebase;
 
 namespace ToeRunner.Plugin;
 
 public interface ICloudPlatform {
-    Task<FirestoreDb> Initialize(string projectId, string apiKey);
+    Task<FirestoreDb> Initialize(string projectId, string apiKey, string userId);
     
     Task<string> AddBatchToeRun(BatchToeRun batchToeRun);
     
     Task AddStrategyResults(string batchToeRunId, List<FirebaseStrategyResult> strategyResults);
     
-    Task SaveBatchToeRun(BatchToeRun batchToeRun);
+    Task UpdateBatchToeRun(string batchToeRunId, long totalStrategies);
 }

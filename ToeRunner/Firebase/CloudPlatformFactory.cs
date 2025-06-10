@@ -39,7 +39,7 @@ public class CloudPlatformFactory
                 cloudPlatform = new FirebaseFirestore();
                 
                 // Initialize the cloud platform
-                await cloudPlatform.Initialize(_config.Firebase.ProjectId, _config.Firebase.ApiKey);
+                await cloudPlatform.Initialize(_config.Firebase.ProjectId, _config.Firebase.ApiKey, _config.UserId);
             }
             
             Console.WriteLine(_config.Firebase.UseMock 

@@ -14,6 +14,10 @@ public class ToeParallelRunner
     private readonly ToeRunnerConfig _config;
     private readonly IToeRunFactory _toeRunFactory;
     private readonly ICloudPlatform? _cloudPlatform;
+    private int _totalStrategiesProcessed = 0;
+    private int _strategiesCounter = 0;
+    private readonly object _lockObject = new object();
+    private const int STRATEGY_UPDATE_THRESHOLD = 10;
     
     /// <summary>
     /// Initializes a new instance of the ToeParallelRunner class.
@@ -69,7 +73,8 @@ public class ToeParallelRunner
     /// </summary>
     /// <param name="jobQueue">The thread-safe queue of jobs.</param>
     /// <param name="threadId">The ID of the thread.</param>
-    private async Task ProcessJobsThread(ConcurrentQueue<ToeJob> jobQueue, int threadId, string batchId)
+    /// <param name="batchId">The ID of the batch run, can be null.</param>
+    private async Task ProcessJobsThread(ConcurrentQueue<ToeJob> jobQueue, int threadId, string? batchId)
     {
         while (jobQueue.TryDequeue(out var job))
         {
@@ -84,7 +89,8 @@ public class ToeParallelRunner
     /// </summary>
     /// <param name="job">The job to process.</param>
     /// <param name="threadId">The ID of the thread processing the job.</param>
-    private async Task ProcessJob(ToeJob job, int threadId, string batchId)
+    /// <param name="batchId">The ID of the batch run, can be null.</param>
+    private async Task ProcessJob(ToeJob job, int threadId, string? batchId)
     {
         Console.WriteLine($"Thread {threadId} processing job: {job.Name} (BigToe: {job.BigToeEnvironmentConfigPath}, TinyToe: {job.TinyToeConfigPath})");
         
@@ -96,7 +102,11 @@ public class ToeParallelRunner
             // Run the IToeRun instance
             await toeRun.RunAsync();
             
-            Console.WriteLine($"Thread {threadId} completed job: {job.Name}");
+            // Get the strategy count and update the synchronized counter
+            int strategiesInJob = toeRun.GetStrategyCount();
+            await UpdateStrategyCountAsync(strategiesInJob, batchId);
+            
+            Console.WriteLine($"Thread {threadId} completed job: {job.Name} with {strategiesInJob} strategies");
         }
         catch (Exception ex)
         {
@@ -137,6 +147,59 @@ public class ToeParallelRunner
         }
     }
 
+    private async Task UpdateStrategyCountAsync(int strategiesInJob, string? batchId)
+    {
+        if (string.IsNullOrEmpty(batchId) || _cloudPlatform == null)
+        {
+            return;
+        }
+        
+        long totalStrategies;
+        bool shouldUpdate = false;
+        
+        lock (_lockObject)
+        {
+            _totalStrategiesProcessed += strategiesInJob;
+            _strategiesCounter += strategiesInJob;
+            
+            if (_strategiesCounter >= STRATEGY_UPDATE_THRESHOLD)
+            {
+                // Reset counter but keep total
+                _strategiesCounter = 0;
+                shouldUpdate = true;
+                totalStrategies = _totalStrategiesProcessed;
+            }
+            else
+            {
+                shouldUpdate = false;
+                totalStrategies = 0;
+            }
+        }
+        
+        // Only update if we've reached the threshold
+        if (shouldUpdate)
+        {
+            // Use await instead of fire-and-forget
+            await UpdateBatchToeRunAsync(batchId, totalStrategies);
+        }
+    }
+    
+    private async Task UpdateBatchToeRunAsync(string batchId, long totalStrategies)
+    {
+        try
+        {
+            if (_cloudPlatform != null)
+            {
+                await _cloudPlatform.UpdateBatchToeRun(batchId, totalStrategies);
+                Console.WriteLine($"Updated batch record {batchId} with total strategies: {totalStrategies}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to update batch record: {ex.Message}");
+        }
+    }
+    
     private void PrintJobList(List<ToeJob> jobs)
     {
         Console.WriteLine("=== Job List ===");
@@ -145,6 +208,6 @@ public class ToeParallelRunner
         {
             Console.WriteLine($"Job #{idx++}: Name: {job.Name}, BigToe Config: {job.BigToeEnvironmentConfigPath}, TinyToe Config: {job.TinyToeConfigPath}");
         }
-        Console.WriteLine("================");
+        Console.WriteLine("=================");
     }
 }

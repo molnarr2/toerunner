@@ -24,6 +24,7 @@ namespace ToeRunner.ToeRun
         private readonly decimal _uploadStrategyPercentage;
         private readonly FilterPercentageType _filterPercentageType;
         private readonly ICloudPlatform? _cloudPlatform;
+        private int _strategyCount = 0;
 
         /// <summary>
         /// Constructor for ToeRunImplementation
@@ -142,7 +143,8 @@ namespace ToeRunner.ToeRun
                 // 7. Load the result JSON file from BigToe
                 Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Step {step++}: Loading BigToe result file");
                 StrategyEvaluationResult? strategyEvaluationResult = LoadBigToeResultFile(bigToeOutputFilePath);
-                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Loaded BigToe result with {strategyEvaluationResult?.ExecutorEvaluationResults?.Count ?? 0} executor evaluation results.");
+                _strategyCount = strategyEvaluationResult?.ExecutorEvaluationResults?.Count ?? 0;
+                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Loaded BigToe result with {_strategyCount} executor evaluation results.");
                 
                 // 8. Convert to list of StrategyResult
                 if (strategyEvaluationResult == null)
@@ -226,6 +228,11 @@ namespace ToeRunner.ToeRun
         /// <param name="executablePath">Path to the executable</param>
         /// <param name="arguments">Command line arguments</param>
         /// <returns>Task representing the asynchronous operation</returns>
+        public int GetStrategyCount()
+        {
+            return _strategyCount;
+        }
+        
         private async Task RunProcessAsync(string executablePath, string arguments)
         {
             var processStartInfo = new ProcessStartInfo

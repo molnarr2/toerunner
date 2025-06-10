@@ -1,4 +1,3 @@
-using ToeRunner.Model.BigToe;
 using Google.Cloud.Firestore;
 using ToeRunner.Firebase;
 
@@ -18,4 +17,10 @@ public class BatchToeRun {
     public DateTime StartTimestamp { get; set; }
     [FirestoreProperty("endTimestamp", ConverterType = typeof(DateTimeConverter))]
     public DateTime EndTimestamp { get; set; }
+    
+    [FirestoreProperty("jobCount")]
+    public int JobCount { get; set; }
+    
+    [FirestoreProperty("totalStrategies")]
+    public long TotalStrategies { get; set; }
 }

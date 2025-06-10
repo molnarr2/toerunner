@@ -12,7 +12,7 @@ public class MockCloudPlatform : ICloudPlatform
     private Dictionary<string, BatchToeRun> _batchToeRuns = new Dictionary<string, BatchToeRun>();
     private Dictionary<string, List<FirebaseStrategyResult>> _strategyResults = new Dictionary<string, List<FirebaseStrategyResult>>();
     
-    public Task<FirestoreDb> Initialize(string projectId, string apiKey)
+    public Task<FirestoreDb> Initialize(string projectId, string apiKey, string userId)
     {
         Console.WriteLine($"[MOCK] Initialized cloud platform with Project ID: {projectId}");
         // We can't return a real FirestoreDb in the mock, but the interface requires a non-null return
@@ -59,18 +59,9 @@ public class MockCloudPlatform : ICloudPlatform
         
         return Task.CompletedTask;
     }
-    
-    public Task SaveBatchToeRun(BatchToeRun batchToeRun)
-    {
-        if (batchToeRun == null)
-            throw new ArgumentNullException(nameof(batchToeRun));
-            
-        if (string.IsNullOrEmpty(batchToeRun.Id))
-            throw new ArgumentException("BatchToeRun ID cannot be null or empty when updating", nameof(batchToeRun.Id));
-            
-        _batchToeRuns[batchToeRun.Id] = batchToeRun;
-        Console.WriteLine($"[MOCK] Updated BatchToeRun with ID: {batchToeRun.Id}");
-        
+
+    public Task UpdateBatchToeRun(string batchToeRunId, long totalStrategies) {
+        Console.WriteLine($"[MOCK] Update BatchtoeRun totalStrategies: {totalStrategies} BatchToeRun ID: {batchToeRunId}");
         return Task.CompletedTask;
     }
 }
