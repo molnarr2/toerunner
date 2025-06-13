@@ -153,7 +153,7 @@ namespace ToeRunner.ToeRun
                     Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Strategy evaluation result is null. Cannot convert to strategy results.");
                     return;
                 }
-                List<FirebaseStrategyResult> strategyResults = StrategyResultConverter.ConvertToStrategyResults(strategyEvaluationResult);
+                List<FirebaseStrategyResult> strategyResults = StrategyResultConverter.ConvertToStrategyResults(strategyEvaluationResult, _job.RunName, _job.Candlestick);
                 Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Converted {strategyResults.Count} strategy results.");
                 
                 // 9. Filter out failed strategies

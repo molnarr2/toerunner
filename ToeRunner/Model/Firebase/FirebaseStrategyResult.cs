@@ -8,8 +8,10 @@ namespace ToeRunner.Model.Firebase;
 public class FirebaseStrategyResult {
     [FirestoreProperty("id")]
     public String Id { get; set; }
-    [FirestoreProperty("name")]
-    public string Name { get; set; }
+    [FirestoreProperty("runName")]
+    public string RunName { get; set; }
+    [FirestoreProperty("candlestick")]
+    public int Candlestick { get; set; }
 
     [FirestoreProperty("executorContainerConfig")]
     public ExecutorContainerConfig ExecutorContainerConfig { get; set; }

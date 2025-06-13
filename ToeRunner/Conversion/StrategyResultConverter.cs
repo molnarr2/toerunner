@@ -17,7 +17,7 @@ namespace ToeRunner.Conversion
         /// </summary>
         /// <param name="evaluationResult">The StrategyEvaluationResult to convert</param>
         /// <returns>A List of StrategyResult objects</returns>
-        public static List<FirebaseStrategyResult> ConvertToStrategyResults(StrategyEvaluationResult evaluationResult)
+        public static List<FirebaseStrategyResult> ConvertToStrategyResults(StrategyEvaluationResult evaluationResult, string runName, int candlestick)
         {
             if (evaluationResult == null || evaluationResult.ExecutorEvaluationResults == null)
             {
@@ -32,7 +32,8 @@ namespace ToeRunner.Conversion
                 var strategyResult = new FirebaseStrategyResult
                 {
                     Id = Guid.NewGuid().ToString(),
-                    Name = executorEvalResult.ExecutorName,
+                    RunName = runName,
+                    Candlestick = candlestick,
                     SegmentCount = executorEvalResult.SegmentStats?.Count ?? 0,
                     TotalTrades = TradeCalculator.CountTotalTrades(executorEvalResult),
                     SegmentStats = ConvertToFirebaseSegmentExecutorStats(executorEvalResult?.SegmentStats),
