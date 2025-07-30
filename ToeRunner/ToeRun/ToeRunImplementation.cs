@@ -138,7 +138,7 @@ namespace ToeRunner.ToeRun
                 await RunProcessAsync(_config.TinyToeExecutablePath, tinyToeConfigFilePath);
                 
                 // 6. Run BigToe executable with TinyToe output
-                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Step {step++}: Running BigToe executable");
+                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Step {step++}: Running BigToe executable: {bigToeConfigFilePath} {tinyToeOutputFilePath}");
                 await RunProcessAsync(_config.BigToeExecutablePath, $"{bigToeConfigFilePath} {tinyToeOutputFilePath}");
                 
                 // 7. Load the result JSON file from BigToe
