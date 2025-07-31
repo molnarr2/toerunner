@@ -157,17 +157,11 @@ namespace ToeRunner.ToeRun
                 List<StrategyResultWithSegmentStats> strategyResultsWithStats = StrategyResultConverter.ConvertToStrategyResults(strategyEvaluationResult, _job.RunName, _job.Candlestick);
                 Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Converted {strategyResultsWithStats.Count} strategy results with segment stats.");
                 
-                // 9. Filter out failed strategies using the strategy results from the combined records
-                List<FirebaseStrategyResult> strategyResultsForFiltering = strategyResultsWithStats.Select(sr => sr.StrategyResult).ToList();
-                List<FirebaseStrategyResult> filteredStrategyResults = StrategyFilter.FilterFailedStrategies(
-                    strategyResultsForFiltering, 
+                // 9. Filter out failed strategies directly using the combined records
+                List<StrategyResultWithSegmentStats> filteredResultsWithStats = StrategyFilter.FilterFailedStrategies(
+                    strategyResultsWithStats, 
                     _uploadStrategyPercentage, 
                     _filterPercentageType);
-                
-                // Filter the combined records to match the filtered strategy results
-                List<StrategyResultWithSegmentStats> filteredResultsWithStats = strategyResultsWithStats
-                    .Where(sr => filteredStrategyResults.Any(filtered => filtered.Id == sr.StrategyResult.Id))
-                    .ToList();
                 
                 Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Filtered to {filteredResultsWithStats.Count} strategy results after applying filter.");
                 

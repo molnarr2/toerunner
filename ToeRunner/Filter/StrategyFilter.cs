@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ToeRunner.Conversion;
 using ToeRunner.Model;
 using ToeRunner.Model.Firebase;
 
@@ -14,31 +15,31 @@ namespace ToeRunner.Filter
         /// <summary>
         /// Filters out failed strategies based on profit metrics and returns a percentage of the best performing strategies
         /// </summary>
-        /// <param name="strategies">List of strategy results to filter</param>
+        /// <param name="strategiesWithStats">List of strategy results with segment stats to filter</param>
         /// <param name="uploadStrategyPercentage">Percentage of strategies to keep (1.0 = 100%, 0.2 = 20%)</param>
         /// <param name="filterPercentageType">The profit percentage type to use for filtering</param>
-        /// <returns>Filtered list of strategy results</returns>
-        public static List<FirebaseStrategyResult> FilterFailedStrategies(
-            List<FirebaseStrategyResult> strategies, 
+        /// <returns>Filtered list of strategy results with segment stats</returns>
+        public static List<StrategyResultWithSegmentStats> FilterFailedStrategies(
+            List<StrategyResultWithSegmentStats> strategiesWithStats, 
             decimal uploadStrategyPercentage, 
             FilterPercentageType filterPercentageType)
         {
-            if (strategies == null || !strategies.Any())
+            if (strategiesWithStats == null || !strategiesWithStats.Any())
             {
-                return new List<FirebaseStrategyResult>();
+                return new List<StrategyResultWithSegmentStats>();
             }
 
             // Step 1: Filter out failed strategies (zero or negative profit)
-            var successfulStrategies = strategies.Where(s => GetProfitByType(s, filterPercentageType) > 0).ToList();
+            var successfulStrategies = strategiesWithStats.Where(s => GetProfitByType(s.StrategyResult, filterPercentageType) > 0).ToList();
             
             if (!successfulStrategies.Any())
             {
-                return new List<FirebaseStrategyResult>();
+                return new List<StrategyResultWithSegmentStats>();
             }
 
             // Step 2: Sort by the profit field corresponding to the filter type
             successfulStrategies = successfulStrategies
-                .OrderByDescending(s => GetProfitByType(s, filterPercentageType))
+                .OrderByDescending(s => GetProfitByType(s.StrategyResult, filterPercentageType))
                 .ToList();
 
             // Step 3: Keep only the top percentage based on uploadStrategyPercentage
