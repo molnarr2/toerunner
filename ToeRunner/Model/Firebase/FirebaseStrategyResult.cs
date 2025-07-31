@@ -16,8 +16,7 @@ public class FirebaseStrategyResult {
     [FirestoreProperty("executorContainerConfig")]
     public ExecutorContainerConfig ExecutorContainerConfig { get; set; }
     
-    [FirestoreProperty("segmentStats")]
-    public List<FirebaseSegmentExecutorStats> SegmentStats { get; set; } = new List<FirebaseSegmentExecutorStats>();
+
 
     [FirestoreProperty("totalTrades")]
     public int TotalTrades { get; set; }

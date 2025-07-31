@@ -8,7 +8,9 @@ public interface ICloudPlatform {
     
     Task<string> AddBatchToeRun(BatchToeRun batchToeRun);
     
-    Task AddStrategyResults(string batchToeRunId, List<FirebaseStrategyResult> strategyResults);
+    Task<string> AddStrategyResults(string batchToeRunId, FirebaseStrategyResult strategyResult);
+    
+    Task AddSegmentStats(string batchToeRunId, string strategyResultId, List<FirebaseSegmentExecutorStats> segmentStats);
     
     Task UpdateBatchToeRun(string batchToeRunId, long totalStrategies, long uploadedStrategies);
 }

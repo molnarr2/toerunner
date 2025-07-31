@@ -13,7 +13,8 @@ public class FirebaseFirestore : ICloudPlatform {
     private string _userId = "";
     private const string UserCollection = "user";
     private const string BatchToeRunCollection = "batchToeRun";
-    private const string StrategyResultsCollection = "strategyResult";
+    private const string StrategyResultsCollection = "strategyResultBackFill";
+    private const string TradeResultBackFillCollection = "tradeResultBackFill";
     private const int MaxBatchSize = 500;
     
     public async Task<FirestoreDb> Initialize(string projectId, string apiKey, string userId)
@@ -46,43 +47,32 @@ public class FirebaseFirestore : ICloudPlatform {
         return batchToeRun.Id;
     }
     
-    public async Task AddStrategyResults(string batchToeRunId, List<FirebaseStrategyResult> strategyResults)
+    public async Task<string> AddStrategyResults(string batchToeRunId, FirebaseStrategyResult strategyResult)
     {
         if (string.IsNullOrEmpty(batchToeRunId))
             throw new ArgumentException("BatchToeRun ID cannot be null or empty", nameof(batchToeRunId));
             
-        if (strategyResults == null || !strategyResults.Any())
-            throw new ArgumentException("Strategy results cannot be null or empty", nameof(strategyResults));
+        if (strategyResult == null)
+            throw new ArgumentException("Strategy result cannot be null", nameof(strategyResult));
         
         if (_firestoreDb == null)
             throw new InvalidOperationException("FirestoreDb has not been initialized. Call Initialize first.");
             
-        // Process strategy results in batches
-        for (int i = 0; i < strategyResults.Count; i += MaxBatchSize)
-        {
-            var batch = _firestoreDb.StartBatch();
-            var currentBatch = strategyResults.Skip(i).Take(MaxBatchSize);
+        // Generate a new GUID for the ID if not already set
+        if (string.IsNullOrEmpty(strategyResult.Id))
+            strategyResult.Id = Guid.NewGuid().ToString();
             
-            foreach (var result in currentBatch)
-            {
-                // Generate a new GUID for the ID if not already set
-                if (string.IsNullOrEmpty(result.Id))
-                    result.Id = Guid.NewGuid().ToString();
-                    
-                var docRef = _firestoreDb
-                    .Collection(UserCollection)
-                    .Document(_userId)
-                    .Collection(BatchToeRunCollection)
-                    .Document(batchToeRunId)
-                    .Collection(StrategyResultsCollection)
-                    .Document(result.Id);
-                    
-                batch.Create(docRef, result);
-            }
+        var docRef = _firestoreDb
+            .Collection(UserCollection)
+            .Document(_userId)
+            .Collection(BatchToeRunCollection)
+            .Document(batchToeRunId)
+            .Collection(StrategyResultsCollection)
+            .Document(strategyResult.Id);
             
-            // Commit the batch
-            await batch.CommitAsync();
-        }
+        await docRef.CreateAsync(strategyResult);
+        
+        return strategyResult.Id;
     }
     
     public async Task UpdateBatchToeRun(string batchToeRunId, long totalStrategies, long uploadedStrategies)
@@ -110,5 +100,48 @@ public class FirebaseFirestore : ICloudPlatform {
         };
         
         await docRef.UpdateAsync(updates);
+    }
+    
+    public async Task AddSegmentStats(string batchToeRunId, string strategyResultId, List<FirebaseSegmentExecutorStats> segmentStats)
+    {
+        if (string.IsNullOrEmpty(batchToeRunId))
+            throw new ArgumentException("BatchToeRun ID cannot be null or empty", nameof(batchToeRunId));
+            
+        if (string.IsNullOrEmpty(strategyResultId))
+            throw new ArgumentException("StrategyResult ID cannot be null or empty", nameof(strategyResultId));
+            
+        if (segmentStats == null || !segmentStats.Any())
+            throw new ArgumentException("Segment stats cannot be null or empty", nameof(segmentStats));
+        
+        if (_firestoreDb == null)
+            throw new InvalidOperationException("FirestoreDb has not been initialized. Call Initialize first.");
+            
+        // Process segment stats in batches
+        for (int i = 0; i < segmentStats.Count; i += MaxBatchSize)
+        {
+            var batch = _firestoreDb.StartBatch();
+            var currentBatch = segmentStats.Skip(i).Take(MaxBatchSize);
+            
+            foreach (var segmentStat in currentBatch)
+            {
+                // Generate a new GUID for the ID if not already set
+                var segmentStatId = Guid.NewGuid().ToString();
+                    
+                var docRef = _firestoreDb
+                    .Collection(UserCollection)
+                    .Document(_userId)
+                    .Collection(BatchToeRunCollection)
+                    .Document(batchToeRunId)
+                    .Collection(StrategyResultsCollection)
+                    .Document(strategyResultId)
+                    .Collection(TradeResultBackFillCollection)
+                    .Document(segmentStatId);
+                    
+                batch.Create(docRef, segmentStat);
+            }
+            
+            // Commit the batch
+            await batch.CommitAsync();
+        }
     }
 }

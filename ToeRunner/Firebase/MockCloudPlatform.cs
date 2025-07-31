@@ -1,6 +1,7 @@
 using Google.Cloud.Firestore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ToeRunner.Model.Firebase;
 using ToeRunner.Plugin;
@@ -35,27 +36,40 @@ public class MockCloudPlatform : ICloudPlatform
         return Task.FromResult(batchToeRun.Id);
     }
     
-    public Task AddStrategyResults(string batchToeRunId, List<FirebaseStrategyResult> strategyResults)
+    public Task<string> AddStrategyResults(string batchToeRunId, FirebaseStrategyResult strategyResult)
     {
         if (string.IsNullOrEmpty(batchToeRunId))
             throw new ArgumentException("BatchToeRun ID cannot be null or empty", nameof(batchToeRunId));
             
-        if (strategyResults == null || strategyResults.Count == 0)
-            throw new ArgumentException("Strategy results cannot be null or empty", nameof(strategyResults));
+        if (strategyResult == null)
+            throw new ArgumentException("Strategy result cannot be null", nameof(strategyResult));
             
         if (!_strategyResults.ContainsKey(batchToeRunId))
             _strategyResults[batchToeRunId] = new List<FirebaseStrategyResult>();
             
-        foreach (var result in strategyResults)
-        {
-            // Generate a new GUID for the ID if not already set
-            if (string.IsNullOrEmpty(result.Id))
-                result.Id = Guid.NewGuid().ToString();
-                
-            _strategyResults[batchToeRunId].Add(result);
-        }
+        // Generate a new GUID for the ID if not already set
+        if (string.IsNullOrEmpty(strategyResult.Id))
+            strategyResult.Id = Guid.NewGuid().ToString();
+            
+        _strategyResults[batchToeRunId].Add(strategyResult);
         
-        Console.WriteLine($"[MOCK] Added {strategyResults.Count} strategy results for BatchToeRun ID: {batchToeRunId}");
+        Console.WriteLine($"[MOCK] Added strategy result {strategyResult.Id} for BatchToeRun ID: {batchToeRunId}");
+        
+        return Task.FromResult(strategyResult.Id);
+    }
+    
+    public Task AddSegmentStats(string batchToeRunId, string strategyResultId, List<FirebaseSegmentExecutorStats> segmentStats)
+    {
+        if (string.IsNullOrEmpty(batchToeRunId))
+            throw new ArgumentException("BatchToeRun ID cannot be null or empty", nameof(batchToeRunId));
+            
+        if (string.IsNullOrEmpty(strategyResultId))
+            throw new ArgumentException("StrategyResult ID cannot be null or empty", nameof(strategyResultId));
+            
+        if (segmentStats == null || segmentStats.Count == 0)
+            throw new ArgumentException("Segment stats cannot be null or empty", nameof(segmentStats));
+            
+        Console.WriteLine($"[MOCK] Added {segmentStats.Count} segment stats for strategy {strategyResultId} in batch {batchToeRunId}");
         
         return Task.CompletedTask;
     }

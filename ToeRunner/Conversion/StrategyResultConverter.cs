@@ -8,23 +8,38 @@ using ToeRunner.Model.Firebase;
 namespace ToeRunner.Conversion
 {
     /// <summary>
+    /// Data structure containing a FirebaseStrategyResult and its associated segment stats
+    /// </summary>
+    public class StrategyResultWithSegmentStats
+    {
+        public FirebaseStrategyResult StrategyResult { get; set; }
+        public List<FirebaseSegmentExecutorStats> SegmentStats { get; set; }
+        
+        public StrategyResultWithSegmentStats()
+        {
+            StrategyResult = new FirebaseStrategyResult();
+            SegmentStats = new List<FirebaseSegmentExecutorStats>();
+        }
+    }
+    
+    /// <summary>
     /// Static converter class for transforming StrategyEvaluationResult objects into StrategyResult objects
     /// </summary>
     public static class StrategyResultConverter
     {
         /// <summary>
-        /// Converts a StrategyEvaluationResult to a List of StrategyResult
+        /// Converts a StrategyEvaluationResult to a List of StrategyResultWithSegmentStats
         /// </summary>
         /// <param name="evaluationResult">The StrategyEvaluationResult to convert</param>
-        /// <returns>A List of StrategyResult objects</returns>
-        public static List<FirebaseStrategyResult> ConvertToStrategyResults(StrategyEvaluationResult evaluationResult, string runName, int candlestick)
+        /// <returns>A List of StrategyResultWithSegmentStats objects</returns>
+        public static List<StrategyResultWithSegmentStats> ConvertToStrategyResults(StrategyEvaluationResult evaluationResult, string runName, int candlestick)
         {
             if (evaluationResult == null || evaluationResult.ExecutorEvaluationResults == null)
             {
-                return new List<FirebaseStrategyResult>();
+                return new List<StrategyResultWithSegmentStats>();
             }
 
-            var results = new List<FirebaseStrategyResult>();
+            var results = new List<StrategyResultWithSegmentStats>();
 
             foreach (var executorEvalResult in evaluationResult.ExecutorEvaluationResults)
             {
@@ -36,9 +51,11 @@ namespace ToeRunner.Conversion
                     Candlestick = candlestick,
                     SegmentCount = executorEvalResult.SegmentStats?.Count ?? 0,
                     TotalTrades = TradeCalculator.CountTotalTrades(executorEvalResult),
-                    SegmentStats = ConvertToFirebaseSegmentExecutorStats(executorEvalResult?.SegmentStats),
                     SegmentIds = GetSegmentIds(evaluationResult?.SegmentDetails)
                 };
+                
+                // Convert segment stats separately
+                var segmentStats = ConvertToFirebaseSegmentExecutorStats(executorEvalResult?.SegmentStats);
 
                 // Find the matching ExecutorContainerConfig
                 if (evaluationResult?.TradeContainerConfig?.Executors != null)
@@ -61,7 +78,14 @@ namespace ToeRunner.Conversion
                 strategyResult.TotalProfit50 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.05m);
                 strategyResult.TotalProfit60 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.06m);
 
-                results.Add(strategyResult);
+                // Create the combined result
+                var resultWithSegmentStats = new StrategyResultWithSegmentStats
+                {
+                    StrategyResult = strategyResult,
+                    SegmentStats = segmentStats
+                };
+                
+                results.Add(resultWithSegmentStats);
             }
 
             return results;
