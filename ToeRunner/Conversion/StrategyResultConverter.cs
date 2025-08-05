@@ -55,7 +55,7 @@ namespace ToeRunner.Conversion
                 };
                 
                 // Convert segment stats separately
-                var segmentStats = ConvertToFirebaseSegmentExecutorStats(executorEvalResult?.SegmentStats);
+                var segmentStats = ConvertToFirebaseSegmentExecutorStats(executorEvalResult?.SegmentStats, strategyResult.Id, strategyResult.SegmentIds);
 
                 // Find the matching ExecutorContainerConfig
                 if (evaluationResult?.TradeContainerConfig?.Executors != null)
@@ -114,8 +114,10 @@ namespace ToeRunner.Conversion
         /// Converts a list of SegmentExecutorStats to a list of FirebaseSegmentExecutorStats
         /// </summary>
         /// <param name="segmentStats">The list of SegmentExecutorStats to convert</param>
+        /// <param name="tradeResultReplayId">The trade result replay identifier</param>
+        /// <param name="segmentIds">The list of segment IDs</param>
         /// <returns>A list of FirebaseSegmentExecutorStats</returns>
-        private static List<FirebaseSegmentExecutorStats> ConvertToFirebaseSegmentExecutorStats(List<SegmentExecutorStats>? segmentStats)
+        private static List<FirebaseSegmentExecutorStats> ConvertToFirebaseSegmentExecutorStats(List<SegmentExecutorStats>? segmentStats, string tradeResultReplayId, List<string> segmentIds)
         {
             if (segmentStats == null)
             {
@@ -124,8 +126,9 @@ namespace ToeRunner.Conversion
 
             var result = new List<FirebaseSegmentExecutorStats>();
 
-            foreach (var segmentStat in segmentStats)
+            for (int i = 0; i < segmentStats.Count; i++)
             {
+                var segmentStat = segmentStats[i];
                 if (segmentStat?.ExecutorStats?.TradeStatsList == null)
                 {
                     continue;
@@ -136,7 +139,23 @@ namespace ToeRunner.Conversion
 
                 var firebaseSegmentStats = new FirebaseSegmentExecutorStats
                 {
-                    TradeStatsList = new List<FirebaseTradeStats>()
+                    TradeResultReplayId = tradeResultReplayId,
+                    SegmentId = segmentIds[i],
+                    TotalTrades = TradeCalculator.CountSegmentTrades(segmentStat),
+                    TradeStatsList = new List<FirebaseTradeStats>(),
+                    
+                    // Calculate profit fields using TradeCalculator at different fee percentages
+                    TotalProfit00 = (double)TradeCalculator.CalculateSegmentProfit(segmentStat, 0.00m),
+                    TotalProfit08 = (double)TradeCalculator.CalculateSegmentProfit(segmentStat, 0.008m),
+                    TotalProfit10 = (double)TradeCalculator.CalculateSegmentProfit(segmentStat, 0.01m),
+                    TotalProfit15 = (double)TradeCalculator.CalculateSegmentProfit(segmentStat, 0.015m),
+                    TotalProfit20 = (double)TradeCalculator.CalculateSegmentProfit(segmentStat, 0.02m),
+                    TotalProfit25 = (double)TradeCalculator.CalculateSegmentProfit(segmentStat, 0.025m),
+                    TotalProfit30 = (double)TradeCalculator.CalculateSegmentProfit(segmentStat, 0.03m),
+                    TotalProfit35 = (double)TradeCalculator.CalculateSegmentProfit(segmentStat, 0.035m),
+                    TotalProfit40 = (double)TradeCalculator.CalculateSegmentProfit(segmentStat, 0.04m),
+                    TotalProfit50 = (double)TradeCalculator.CalculateSegmentProfit(segmentStat, 0.05m),
+                    TotalProfit60 = (double)TradeCalculator.CalculateSegmentProfit(segmentStat, 0.06m)
                 };
 
                 foreach (var tradeStat in executorStats.TradeStatsList)

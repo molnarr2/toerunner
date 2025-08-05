@@ -193,5 +193,20 @@ namespace ToeRunner.Math
             // Calculate the average profit per segment
             return validSegments.Sum() / validSegments.Count;
         }
+
+        /// <summary>
+        /// Counts the total number of trades in a single segment
+        /// </summary>
+        /// <param name="segment">The segment executor stats containing trade information</param>
+        /// <returns>The total number of trades in the segment</returns>
+        public static int CountSegmentTrades(SegmentExecutorStats segment)
+        {
+            if (segment.ExecutorStats == null || segment.ExecutorStats.TradeStatsList == null)
+            {
+                return 0;
+            }
+
+            return segment.ExecutorStats.TradeStatsList.Count;
+        }
     }
 }
