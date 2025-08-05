@@ -13,18 +13,18 @@ public class FirebaseSellStats
     /// <summary>
     /// The amount of base currency sold
     /// </summary>
-    [FirestoreProperty("a", ConverterType = typeof(DecimalConverter))]
+    [FirestoreProperty("amountSold", ConverterType = typeof(DecimalConverter))]
     public decimal AmountSold { get; set; }
     
     /// <summary>
     /// The total amount received in quote currency
     /// </summary>
-    [FirestoreProperty("t", ConverterType = typeof(DecimalConverter))]
+    [FirestoreProperty("totalReceived", ConverterType = typeof(DecimalConverter))]
     public decimal TotalReceived { get; set; }
     
     /// <summary>
     /// The time when the sell operation finished
     /// </summary>
-    [FirestoreProperty("e", ConverterType = typeof(DateTimeConverter))]
+    [FirestoreProperty("endTime", ConverterType = typeof(DateTimeConverter))]
     public DateTime EndTime { get; set; }
 }

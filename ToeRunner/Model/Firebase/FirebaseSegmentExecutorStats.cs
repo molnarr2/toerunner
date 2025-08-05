@@ -17,8 +17,8 @@ public class FirebaseSegmentExecutorStats {
     /// <summary>
     /// Trade result replay identifier
     /// </summary>
-    [FirestoreProperty("tradeResultReplayId")]
-    public string TradeResultReplayId { get; set; } = string.Empty;
+    [FirestoreProperty("strategyResultReplayId")]
+    public string StrategyResultReplayId { get; set; } = string.Empty;
     
     /// <summary>
     /// Segment identifier
@@ -35,7 +35,7 @@ public class FirebaseSegmentExecutorStats {
     /// <summary>
     /// List of statistics for all trade operations (buy-sell pairs) performed by this executor
     /// </summary>
-    [FirestoreProperty("ts")]
+    [FirestoreProperty("tradeStatsList")]
     public List<FirebaseTradeStats> TradeStatsList { get; set; } = new List<FirebaseTradeStats>();
     
     // Profit calculations at different fee percentages

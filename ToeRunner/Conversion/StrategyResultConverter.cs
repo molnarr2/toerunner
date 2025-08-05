@@ -114,10 +114,10 @@ namespace ToeRunner.Conversion
         /// Converts a list of SegmentExecutorStats to a list of FirebaseSegmentExecutorStats
         /// </summary>
         /// <param name="segmentStats">The list of SegmentExecutorStats to convert</param>
-        /// <param name="tradeResultReplayId">The trade result replay identifier</param>
+        /// <param name="strategyResultReplayId">The strategy result replay identifier</param>
         /// <param name="segmentIds">The list of segment IDs</param>
         /// <returns>A list of FirebaseSegmentExecutorStats</returns>
-        private static List<FirebaseSegmentExecutorStats> ConvertToFirebaseSegmentExecutorStats(List<SegmentExecutorStats>? segmentStats, string tradeResultReplayId, List<string> segmentIds)
+        private static List<FirebaseSegmentExecutorStats> ConvertToFirebaseSegmentExecutorStats(List<SegmentExecutorStats>? segmentStats, string strategyResultReplayId, List<string> segmentIds)
         {
             if (segmentStats == null)
             {
@@ -140,7 +140,7 @@ namespace ToeRunner.Conversion
                 var firebaseSegmentStats = new FirebaseSegmentExecutorStats
                 {
                     Id = Guid.NewGuid().ToString(),
-                    TradeResultReplayId = tradeResultReplayId,
+                    StrategyResultReplayId = strategyResultReplayId,
                     SegmentId = segmentIds[i],
                     TotalTrades = TradeCalculator.CountSegmentTrades(segmentStat),
                     TradeStatsList = new List<FirebaseTradeStats>(),

@@ -14,7 +14,7 @@ public class FirebaseFirestore : ICloudPlatform {
     private const string UserCollection = "user";
     private const string BatchToeRunCollection = "batchToeRun";
     private const string StrategyResultsCollection = "strategyResultReplay";
-    private const string TradeResultBackFillCollection = "tradeResultReplay";
+    private const string SegmentResultBackFillCollection = "segmentResultReplay";
     private const int MaxBatchSize = 500;
     
     public async Task<FirestoreDb> Initialize(string projectId, string apiKey, string userId)
@@ -131,7 +131,7 @@ public class FirebaseFirestore : ICloudPlatform {
                     .Document(batchToeRunId)
                     .Collection(StrategyResultsCollection)
                     .Document(strategyResultId)
-                    .Collection(TradeResultBackFillCollection)
+                    .Collection(SegmentResultBackFillCollection)
                     .Document(segmentStat.Id);
                     
                 batch.Create(docRef, segmentStat);

@@ -12,12 +12,12 @@ public class FirebaseTradeStats {
     /// <summary>
     /// Buy statistics for this trade
     /// </summary>
-    [FirestoreProperty("bs")]
+    [FirestoreProperty("buyStats")]
     public FirebaseBuyStats BuyStats { get; set; }
     
     /// <summary>
     /// Sell statistics for this trade (may be null if sell hasn't occurred)
     /// </summary>
-    [FirestoreProperty("ss")]
+    [FirestoreProperty("sellStats")]
     public FirebaseSellStats SellStats { get; set; }
 }
