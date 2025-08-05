@@ -124,9 +124,6 @@ public class FirebaseFirestore : ICloudPlatform {
             
             foreach (var segmentStat in currentBatch)
             {
-                // Generate a new GUID for the ID if not already set
-                var segmentStatId = Guid.NewGuid().ToString();
-                    
                 var docRef = _firestoreDb
                     .Collection(UserCollection)
                     .Document(_userId)
@@ -135,7 +132,7 @@ public class FirebaseFirestore : ICloudPlatform {
                     .Collection(StrategyResultsCollection)
                     .Document(strategyResultId)
                     .Collection(TradeResultBackFillCollection)
-                    .Document(segmentStatId);
+                    .Document(segmentStat.Id);
                     
                 batch.Create(docRef, segmentStat);
             }

@@ -9,16 +9,22 @@ namespace ToeRunner.Model.Firebase;
 [FirestoreData]
 public class FirebaseSegmentExecutorStats {
     /// <summary>
+    /// Unique identifier for this segment executor stats
+    /// </summary>
+    [FirestoreProperty("id")]
+    public String Id { get; set; } = string.Empty;
+    
+    /// <summary>
     /// Trade result replay identifier
     /// </summary>
     [FirestoreProperty("tradeResultReplayId")]
-    public string TradeResultReplayId { get; set; }
+    public string TradeResultReplayId { get; set; } = string.Empty;
     
     /// <summary>
     /// Segment identifier
     /// </summary>
     [FirestoreProperty("segmentId")]
-    public string SegmentId { get; set; }
+    public string SegmentId { get; set; } = string.Empty;
     
     /// <summary>
     /// Total number of trades in this segment
@@ -30,7 +36,7 @@ public class FirebaseSegmentExecutorStats {
     /// List of statistics for all trade operations (buy-sell pairs) performed by this executor
     /// </summary>
     [FirestoreProperty("ts")]
-    public List<FirebaseTradeStats> TradeStatsList { get; set; }
+    public List<FirebaseTradeStats> TradeStatsList { get; set; } = new List<FirebaseTradeStats>();
     
     // Profit calculations at different fee percentages
     [FirestoreProperty("p00")]

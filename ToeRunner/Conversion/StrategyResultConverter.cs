@@ -139,6 +139,7 @@ namespace ToeRunner.Conversion
 
                 var firebaseSegmentStats = new FirebaseSegmentExecutorStats
                 {
+                    Id = Guid.NewGuid().ToString(),
                     TradeResultReplayId = tradeResultReplayId,
                     SegmentId = segmentIds[i],
                     TotalTrades = TradeCalculator.CountSegmentTrades(segmentStat),
