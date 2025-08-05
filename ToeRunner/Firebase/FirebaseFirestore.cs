@@ -13,8 +13,8 @@ public class FirebaseFirestore : ICloudPlatform {
     private string _userId = "";
     private const string UserCollection = "user";
     private const string BatchToeRunCollection = "batchToeRun";
-    private const string StrategyResultsCollection = "strategyResultBackFill";
-    private const string TradeResultBackFillCollection = "tradeResultBackFill";
+    private const string StrategyResultsCollection = "strategyResultReplay";
+    private const string TradeResultBackFillCollection = "tradeResultReplay";
     private const int MaxBatchSize = 500;
     
     public async Task<FirestoreDb> Initialize(string projectId, string apiKey, string userId)
