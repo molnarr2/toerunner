@@ -31,8 +31,11 @@ namespace ToeRunner.Conversion
         /// Converts a StrategyEvaluationResult to a List of StrategyResultWithSegmentStats
         /// </summary>
         /// <param name="evaluationResult">The StrategyEvaluationResult to convert</param>
+        /// <param name="runName">The name of the run</param>
+        /// <param name="candlestick">The candlestick value</param>
+        /// <param name="userId">The user identifier</param>
         /// <returns>A List of StrategyResultWithSegmentStats objects</returns>
-        public static List<StrategyResultWithSegmentStats> ConvertToStrategyResults(StrategyEvaluationResult evaluationResult, string runName, int candlestick)
+        public static List<StrategyResultWithSegmentStats> ConvertToStrategyResults(StrategyEvaluationResult evaluationResult, string runName, int candlestick, string userId)
         {
             if (evaluationResult == null || evaluationResult.ExecutorEvaluationResults == null)
             {
@@ -55,7 +58,7 @@ namespace ToeRunner.Conversion
                 };
                 
                 // Convert segment stats separately
-                var segmentStats = ConvertToFirebaseSegmentExecutorStats(executorEvalResult?.SegmentStats, strategyResult.Id, strategyResult.SegmentIds);
+                var segmentStats = ConvertToFirebaseSegmentExecutorStats(executorEvalResult?.SegmentStats, strategyResult.Id, strategyResult.SegmentIds, userId);
 
                 // Find the matching ExecutorContainerConfig
                 if (evaluationResult?.TradeContainerConfig?.Executors != null)
@@ -116,8 +119,9 @@ namespace ToeRunner.Conversion
         /// <param name="segmentStats">The list of SegmentExecutorStats to convert</param>
         /// <param name="strategyResultReplayId">The strategy result replay identifier</param>
         /// <param name="segmentIds">The list of segment IDs</param>
+        /// <param name="userId">The user identifier</param>
         /// <returns>A list of FirebaseSegmentExecutorStats</returns>
-        private static List<FirebaseSegmentExecutorStats> ConvertToFirebaseSegmentExecutorStats(List<SegmentExecutorStats>? segmentStats, string strategyResultReplayId, List<string> segmentIds)
+        private static List<FirebaseSegmentExecutorStats> ConvertToFirebaseSegmentExecutorStats(List<SegmentExecutorStats>? segmentStats, string strategyResultReplayId, List<string> segmentIds, string userId)
         {
             if (segmentStats == null)
             {
@@ -142,6 +146,7 @@ namespace ToeRunner.Conversion
                     Id = Guid.NewGuid().ToString(),
                     StrategyResultReplayId = strategyResultReplayId,
                     SegmentId = segmentIds[i],
+                    UserId = userId,
                     TotalTrades = TradeCalculator.CountSegmentTrades(segmentStat),
                     TradeStatsList = new List<FirebaseTradeStats>(),
                     

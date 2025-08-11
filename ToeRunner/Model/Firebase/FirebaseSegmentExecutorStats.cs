@@ -15,6 +15,12 @@ public class FirebaseSegmentExecutorStats {
     public String Id { get; set; } = string.Empty;
     
     /// <summary>
+    /// User identifier
+    /// </summary>
+    [FirestoreProperty("userId")]
+    public string UserId { get; set; } = string.Empty;
+    
+    /// <summary>
     /// Trade result replay identifier
     /// </summary>
     [FirestoreProperty("strategyResultReplayId")]

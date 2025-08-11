@@ -154,7 +154,7 @@ namespace ToeRunner.ToeRun
                     Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Strategy evaluation result is null. Cannot convert to strategy results.");
                     return;
                 }
-                List<StrategyResultWithSegmentStats> strategyResultsWithStats = StrategyResultConverter.ConvertToStrategyResults(strategyEvaluationResult, _job.RunName, _job.Candlestick);
+                List<StrategyResultWithSegmentStats> strategyResultsWithStats = StrategyResultConverter.ConvertToStrategyResults(strategyEvaluationResult, _job.RunName, _job.Candlestick, _config.UserId);
                 Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Converted {strategyResultsWithStats.Count} strategy results with segment stats.");
                 
                 // 9. Filter out failed strategies directly using the combined records
