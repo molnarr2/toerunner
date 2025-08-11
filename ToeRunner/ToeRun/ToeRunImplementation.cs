@@ -21,7 +21,7 @@ namespace ToeRunner.ToeRun
         private readonly ToeRunnerConfig _config;
         private readonly ToeJob _job;
         private readonly int _id;
-        private readonly string? _batchToeRunId;
+        private readonly string _batchToeRunId;
         private readonly decimal _uploadStrategyPercentage;
         private readonly FilterPercentageType _filterPercentageType;
         private readonly ICloudPlatform? _cloudPlatform;
@@ -154,7 +154,7 @@ namespace ToeRunner.ToeRun
                     Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Strategy evaluation result is null. Cannot convert to strategy results.");
                     return;
                 }
-                List<StrategyResultWithSegmentStats> strategyResultsWithStats = StrategyResultConverter.ConvertToStrategyResults(strategyEvaluationResult, _job.RunName, _job.Candlestick, _config.UserId);
+                List<StrategyResultWithSegmentStats> strategyResultsWithStats = StrategyResultConverter.ConvertToStrategyResults(strategyEvaluationResult, _job.RunName, _job.Candlestick, _config.UserId, _batchToeRunId);
                 Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Converted {strategyResultsWithStats.Count} strategy results with segment stats.");
                 
                 // 9. Filter out failed strategies directly using the combined records

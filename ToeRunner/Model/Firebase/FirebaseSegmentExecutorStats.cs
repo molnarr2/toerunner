@@ -21,6 +21,12 @@ public class FirebaseSegmentExecutorStats {
     public string UserId { get; set; } = string.Empty;
     
     /// <summary>
+    /// Batch toe run identifier
+    /// </summary>
+    [FirestoreProperty("batchToeRunId")]
+    public string BatchToeRunId { get; set; } = string.Empty;
+    
+    /// <summary>
     /// Trade result replay identifier
     /// </summary>
     [FirestoreProperty("strategyResultReplayId")]
