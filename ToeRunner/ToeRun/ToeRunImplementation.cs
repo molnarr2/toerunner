@@ -261,28 +261,18 @@ namespace ToeRunner.ToeRun
             {
                 FileName = executablePath,
                 Arguments = arguments,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
             using (var process = new Process { StartInfo = processStartInfo })
             {
                 process.Start();
-                // Read output and error streams asynchronously
-                var outputTask = process.StandardOutput.ReadToEndAsync();
-                var errorTask = process.StandardError.ReadToEndAsync();
-                // Wait for the process to exit
+                // Wait for the process to exit without reading output or error streams
                 await Task.Run(() => process.WaitForExit());
-                string output = await outputTask;
-                string error = await errorTask;
-                if (!string.IsNullOrEmpty(error))
-                {
-                    Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Process error output: {error}");
-                }
+                
                 if (process.ExitCode != 0)
                 {
-                    throw new Exception($"[ToeRun-{_uniqueInstanceId}] Process exited with code {process.ExitCode}. Error: {error}");
+                    throw new Exception($"[ToeRun-{_uniqueInstanceId}] Process exited with code {process.ExitCode}");
                 }
             }
         }
