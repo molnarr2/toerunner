@@ -45,14 +45,12 @@ public class FirebaseConfig {
 public class RunConfig {
     public string? Name { get; set; }
     public int RunCount { get; set; }
-    public int Candlestick { get; set; }
     public string? BigToeEnvironmentConfigPath { get; set; }
     public List<string>? TinyToeConfigPaths { get; set; } 
 }
 
 public class ToeJob {
     public string RunName { get; set; }
-    public int Candlestick { get; set; }
     public string? Name { get; set; }
     public string? BigToeEnvironmentConfigPath { get; set; }
     public string? TinyToeConfigPath { get; set; }

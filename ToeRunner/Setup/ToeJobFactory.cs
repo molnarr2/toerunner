@@ -27,7 +27,6 @@ public static class ToeJobFactory
                     var toeJob = new ToeJob
                     {
                         RunName = runConfig.Name,
-                        Candlestick = runConfig.Candlestick,
                         Name = $"{SanitizePathName(runConfig.Name)}_{count}",
                         BigToeEnvironmentConfigPath = runConfig.BigToeEnvironmentConfigPath,
                         TinyToeConfigPath = tinyToeConfigPath

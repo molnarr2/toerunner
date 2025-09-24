@@ -36,7 +36,7 @@ namespace ToeRunner.Conversion
         /// <param name="userId">The user identifier</param>
         /// <param name="batchToeRunId">The batch toe run identifier</param>
         /// <returns>A List of StrategyResultWithSegmentStats objects</returns>
-        public static List<StrategyResultWithSegmentStats> ConvertToStrategyResults(StrategyEvaluationResult evaluationResult, string runName, int candlestick, string userId, string batchToeRunId)
+        public static List<StrategyResultWithSegmentStats> ConvertToStrategyResults(StrategyEvaluationResult evaluationResult, string runName, string userId, string batchToeRunId)
         {
             if (evaluationResult == null || evaluationResult.ExecutorEvaluationResults == null)
             {
@@ -52,7 +52,6 @@ namespace ToeRunner.Conversion
                 {
                     Id = Guid.NewGuid().ToString(),
                     RunName = runName,
-                    Candlestick = candlestick,
                     SegmentCount = executorEvalResult.SegmentStats?.Count ?? 0,
                     TotalTrades = TradeCalculator.CountTotalTrades(executorEvalResult),
                     SegmentIds = GetSegmentIds(evaluationResult?.SegmentDetails)
