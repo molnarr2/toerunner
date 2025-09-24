@@ -4,31 +4,31 @@ using ToeRunner.Model;
 namespace ToeRunner.Setup;
 
 /// <summary>
-/// Factory class for creating ToeJob instances from RunConfig objects.
+/// Factory class for creating ToeJob instances from ToeRunnerConfig objects.
 /// </summary>
 public static class ToeJobFactory
 {
     /// <summary>
-    /// Creates a list of ToeJob objects from a list of RunConfig objects.
-    /// For each RunConfig, creates multiple ToeJobs based on the RunCount and TinyToeConfigPaths.
+    /// Creates a list of ToeJob objects from a ToeRunnerConfig object.
+    /// Creates multiple ToeJobs based on the PerFileRunCount and TinyToeConfigPaths.
     /// </summary>
-    /// <param name="runConfigs">The list of RunConfig objects to process.</param>
+    /// <param name="config">The ToeRunnerConfig object to process.</param>
     /// <returns>A list of ToeJob objects.</returns>
-    public static List<ToeJob> CreateToeJobs(List<RunConfig> runConfigs)
+    public static List<ToeJob> CreateToeJobs(ToeRunnerConfig config)
     {
         var toeJobs = new List<ToeJob>();
         
-        foreach (var runConfig in runConfigs)
+        if (config.TinyToeConfigPaths != null)
         {
-            for (int count = 1; count <= runConfig.RunCount; count++)
+            foreach (var tinyToeConfigPath in config.TinyToeConfigPaths)
             {
-                foreach (var tinyToeConfigPath in runConfig.TinyToeConfigPaths)
+                for (int count = 1; count <= config.PerFileRunCount; count++)
                 {
                     var toeJob = new ToeJob
                     {
-                        RunName = runConfig.Name,
-                        Name = $"{SanitizePathName(runConfig.Name)}_{count}",
-                        BigToeEnvironmentConfigPath = runConfig.BigToeEnvironmentConfigPath,
+                        RunName = config.Name,
+                        Name = $"{SanitizePathName(config.Name)}_{Path.GetFileNameWithoutExtension(tinyToeConfigPath)}_{count}",
+                        BigToeEnvironmentConfigPath = config.BigToeEnvironmentConfigPath,
                         TinyToeConfigPath = tinyToeConfigPath
                     };
                     

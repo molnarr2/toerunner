@@ -15,14 +15,17 @@ public enum FilterPercentageType {
 }
 
 public class ToeRunnerConfig {
-    public string Name {get; set;}
-    public string UserId { get; set; }
-    public string Server { get; set; }
+    public required string Name {get; set;}
+    public required string UserId { get; set; }
+    public required string Server { get; set; }
     public int ParallelRunners { get; set; }
     public string? WorkspacePath { get; set; }
     public string? BigToeExecutablePath { get; set; }
     public string? TinyToeExecutablePath { get; set; }
-    public List<RunConfig>? Runs { get; set; }
+    public List<string>? TinyToeConfigPaths { get; set; }
+    public int PerFileRunCount { get; set; }
+    public int TinyToeRunCount { get; set; }
+    public string? BigToeEnvironmentConfigPath { get; set; }
     public FirebaseConfig? Firebase { get; set; }
     /// <summary>
     /// The percentage of successful strategies to upload. 
@@ -50,7 +53,7 @@ public class RunConfig {
 }
 
 public class ToeJob {
-    public string RunName { get; set; }
+    public required string RunName { get; set; }
     public string? Name { get; set; }
     public string? BigToeEnvironmentConfigPath { get; set; }
     public string? TinyToeConfigPath { get; set; }

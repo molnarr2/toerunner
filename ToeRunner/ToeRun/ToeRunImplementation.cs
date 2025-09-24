@@ -21,7 +21,7 @@ namespace ToeRunner.ToeRun
         private readonly ToeRunnerConfig _config;
         private readonly ToeJob _job;
         private readonly int _id;
-        private readonly string _batchToeRunId;
+        private readonly string? _batchToeRunId;
         private readonly decimal _uploadStrategyPercentage;
         private readonly FilterPercentageType _filterPercentageType;
         private readonly ICloudPlatform? _cloudPlatform;
@@ -123,6 +123,7 @@ namespace ToeRunner.ToeRun
                 {
                     throw new Exception($"[ToeRun-{_uniqueInstanceId}] Failed to create BigToe config file for job {_job.Name}");
                 }
+                // First replace $OUTPUT$ in TinyToe config
                 bool tinyToeConfigSuccess = FileStringReplacer.ReplaceStringInFile(
                     _job.TinyToeConfigPath,
                     "$OUTPUT$",
@@ -131,6 +132,17 @@ namespace ToeRunner.ToeRun
                 if (!tinyToeConfigSuccess)
                 {
                     throw new Exception($"[ToeRun-{_uniqueInstanceId}] Failed to create TinyToe config file for job {_job.Name}");
+                }
+                
+                // Then replace $RUNCOUNT$ in the already modified TinyToe config
+                bool tinyToeRunCountSuccess = FileStringReplacer.ReplaceStringInFile(
+                    tinyToeConfigFilePath,
+                    "$RUNCOUNT$",
+                    _config.TinyToeRunCount.ToString(),
+                    tinyToeConfigFilePath);
+                if (!tinyToeRunCountSuccess)
+                {
+                    throw new Exception($"[ToeRun-{_uniqueInstanceId}] Failed to replace TinyToeRunCount in config file for job {_job.Name}");
                 }
                 Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Step {step++}: Created config files");
                 
@@ -154,7 +166,7 @@ namespace ToeRunner.ToeRun
                     Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Strategy evaluation result is null. Cannot convert to strategy results.");
                     return;
                 }
-                List<StrategyResultWithSegmentStats> strategyResultsWithStats = StrategyResultConverter.ConvertToStrategyResults(strategyEvaluationResult, _job.RunName, _config.UserId, _batchToeRunId);
+                List<StrategyResultWithSegmentStats> strategyResultsWithStats = StrategyResultConverter.ConvertToStrategyResults(strategyEvaluationResult, _job.RunName, _config.UserId, _batchToeRunId ?? string.Empty);
                 Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Converted {strategyResultsWithStats.Count} strategy results with segment stats.");
                 
                 // 9. Filter out failed strategies directly using the combined records
