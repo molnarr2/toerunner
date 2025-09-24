@@ -28,7 +28,6 @@ public static class ToeJobFactory
                     {
                         RunName = config.Name,
                         Name = $"{SanitizePathName(config.Name)}_{Path.GetFileNameWithoutExtension(tinyToeConfigPath)}_{count}",
-                        BigToeEnvironmentConfigPath = config.BigToeEnvironmentConfigPath,
                         TinyToeConfigPath = tinyToeConfigPath
                     };
                     

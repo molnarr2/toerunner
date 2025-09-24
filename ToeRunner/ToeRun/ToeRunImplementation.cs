@@ -57,7 +57,6 @@ namespace ToeRunner.ToeRun
         {
             Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Job Info:");
             Console.WriteLine($"[ToeRun-{_uniqueInstanceId}]   Name: {_job.Name}");
-            Console.WriteLine($"[ToeRun-{_uniqueInstanceId}]   BigToe Config: {_job.BigToeEnvironmentConfigPath}");
             Console.WriteLine($"[ToeRun-{_uniqueInstanceId}]   TinyToe Config: {_job.TinyToeConfigPath}");
         }
 
@@ -83,10 +82,6 @@ namespace ToeRunner.ToeRun
                 if (string.IsNullOrEmpty(_config.TinyToeExecutablePath))
                 {
                     throw new InvalidOperationException($"[ToeRun-{_uniqueInstanceId}] TinyToeExecutablePath is not configured in ToeRunnerConfig");
-                }
-                if (string.IsNullOrEmpty(_job.BigToeEnvironmentConfigPath))
-                {
-                    throw new InvalidOperationException($"[ToeRun-{_uniqueInstanceId}] BigToeEnvironmentConfigPath is not configured in ToeJob");
                 }
                 if (string.IsNullOrEmpty(_job.TinyToeConfigPath))
                 {
@@ -115,7 +110,7 @@ namespace ToeRunner.ToeRun
                 
                 // 4. Replace strings in config files and save to new location
                 bool bigToeConfigSuccess = FileStringReplacer.ReplaceStringInFile(
-                    _job.BigToeEnvironmentConfigPath,
+                    _config.BigToeEnvironmentConfigPath,
                     "$OUTPUT$",
                     bigToeOutputFilePath,
                     bigToeConfigFilePath);
@@ -151,8 +146,8 @@ namespace ToeRunner.ToeRun
                 await RunProcessAsync(_config.TinyToeExecutablePath, tinyToeConfigFilePath);
                 
                 // 6. Run BigToe executable with TinyToe output
-                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Step {step++}: Running BigToe executable: {bigToeConfigFilePath} {tinyToeOutputFilePath}");
-                await RunProcessAsync(_config.BigToeExecutablePath, $"{bigToeConfigFilePath} {tinyToeOutputFilePath}");
+                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Step {step++}: Running BigToe executable: {bigToeConfigFilePath} {tinyToeOutputFilePath} {_config.BigToeSegmentPath}");
+                await RunProcessAsync(_config.BigToeExecutablePath, $"{bigToeConfigFilePath} {tinyToeOutputFilePath} {_config.BigToeSegmentPath}");
                 
                 // 7. Load the result JSON file from BigToe
                 Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Step {step++}: Loading BigToe result file");

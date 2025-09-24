@@ -97,7 +97,7 @@ public class ToeParallelRunner
     /// <param name="batchId">The ID of the batch run, can be null.</param>
     private async Task ProcessJob(ToeJob job, int threadId, string? batchId)
     {
-        Console.WriteLine($"Thread {threadId} processing job: {job.Name} (BigToe: {job.BigToeEnvironmentConfigPath}, TinyToe: {job.TinyToeConfigPath})");
+        Console.WriteLine($"Thread {threadId} processing job: {job.Name} (BigToe: {_config.BigToeEnvironmentConfigPath}, TinyToe: {job.TinyToeConfigPath})");
         
         try
         {
@@ -210,7 +210,7 @@ public class ToeParallelRunner
         int idx = 1;
         foreach (var job in jobs)
         {
-            Console.WriteLine($"Job #{idx++}: Name: {job.Name}, BigToe Config: {job.BigToeEnvironmentConfigPath}, TinyToe Config: {job.TinyToeConfigPath}");
+            Console.WriteLine($"Job #{idx++}: Name: {job.Name}, BigToe Config: {_config.BigToeEnvironmentConfigPath}, TinyToe Config: {job.TinyToeConfigPath}");
         }
         Console.WriteLine("=================");
     }

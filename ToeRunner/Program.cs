@@ -40,7 +40,7 @@ public class Program
 
             // 2. Use Newtonsoft.Json to parse the JSON to ToeRunnerConfig
             string jsonContent = File.ReadAllText(configPath);
-            ToeRunnerConfig config = JsonConvert.DeserializeObject<ToeRunnerConfig>(jsonContent) ?? new ToeRunnerConfig();
+            ToeRunnerConfig config = JsonConvert.DeserializeObject<ToeRunnerConfig>(jsonContent);
 
             if (config == null)
             {
@@ -61,12 +61,7 @@ public class Program
             IToeRunFactory toeRunFactory = new ToeRunFactory(config, cloudPlatform);
 
             // 4. Create a list of ToeJob via the ToeJobFactory
-            if (config.Runs == null)
-            {
-                Console.WriteLine("Error: No runs configured in the configuration file.");
-                return;
-            }
-            var toeJobs = ToeJobFactory.CreateToeJobs(config.Runs);
+            var toeJobs = ToeJobFactory.CreateToeJobs(config);
             Console.WriteLine($"Created {toeJobs.Count} jobs to process.");
 
             // 5. Create an instance of ToeParallelRunner with cloud platform if available

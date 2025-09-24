@@ -20,12 +20,13 @@ public class ToeRunnerConfig {
     public required string Server { get; set; }
     public int ParallelRunners { get; set; }
     public string? WorkspacePath { get; set; }
-    public string? BigToeExecutablePath { get; set; }
-    public string? TinyToeExecutablePath { get; set; }
+    public required string BigToeExecutablePath { get; set; }
+    public required string TinyToeExecutablePath { get; set; }
     public List<string>? TinyToeConfigPaths { get; set; }
-    public int PerFileRunCount { get; set; }
-    public int TinyToeRunCount { get; set; }
-    public string? BigToeEnvironmentConfigPath { get; set; }
+    public required int PerFileRunCount { get; set; }
+    public required int TinyToeRunCount { get; set; }
+    public required string BigToeEnvironmentConfigPath { get; set; }
+    public required string BigToeSegmentPath { get; set; }
     public FirebaseConfig? Firebase { get; set; }
     /// <summary>
     /// The percentage of successful strategies to upload. 
@@ -45,16 +46,8 @@ public class FirebaseConfig {
     public string? ApiKey { get; set; }
 }
 
-public class RunConfig {
-    public string? Name { get; set; }
-    public int RunCount { get; set; }
-    public string? BigToeEnvironmentConfigPath { get; set; }
-    public List<string>? TinyToeConfigPaths { get; set; } 
-}
-
 public class ToeJob {
     public required string RunName { get; set; }
     public string? Name { get; set; }
-    public string? BigToeEnvironmentConfigPath { get; set; }
     public string? TinyToeConfigPath { get; set; }
 }
