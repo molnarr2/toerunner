@@ -264,6 +264,9 @@ namespace ToeRunner.ToeRun
         
         private async Task RunProcessAsync(string executablePath, string arguments)
         {
+            var stopwatch = Stopwatch.StartNew();
+            Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Starting process: {executablePath} with arguments: {arguments}");
+            
             var processStartInfo = new ProcessStartInfo
             {
                 FileName = executablePath,
@@ -276,6 +279,9 @@ namespace ToeRunner.ToeRun
                 process.Start();
                 // Wait for the process to exit without reading output or error streams
                 await Task.Run(() => process.WaitForExit());
+                
+                stopwatch.Stop();
+                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Process completed: {executablePath} - Total time: {stopwatch.Elapsed.TotalSeconds:F2} seconds ({stopwatch.Elapsed})");
                 
                 if (process.ExitCode != 0)
                 {
