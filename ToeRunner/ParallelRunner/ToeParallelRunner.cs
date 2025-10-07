@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Text.Json;
+using ToeRunner.Conversion;
+using ToeRunner.Filter;
 using ToeRunner.Model;
 using ToeRunner.Model.BigToe;
 using ToeRunner.Model.Firebase;
@@ -23,6 +25,7 @@ public class ToeParallelRunner
     private int _jobRuns = 0;
     private readonly object _lockObject = new object();
     private const int STRATEGY_UPDATE_THRESHOLD = 10;
+    private readonly ConcurrentBag<StrategyResultWithSegmentStats> _allStrategies = new ConcurrentBag<StrategyResultWithSegmentStats>();
     
     /// <summary>
     /// Initializes a new instance of the ToeParallelRunner class.
@@ -71,6 +74,9 @@ public class ToeParallelRunner
         // Wait for all tasks to complete
         await Task.WhenAll(tasks);
         
+        // Upload strategies at the end
+        await UploadTopStrategiesAsync(batchId);
+        
         Console.WriteLine($"Updated batch record {batchId} with total strategies: {_totalStrategiesProcessed}, uploaded strategies: {_totalUploadedStrategies}");
         await UpdateBatchToeRunAsync(batchId, _totalStrategiesProcessed, _totalUploadedStrategies);
         
@@ -111,12 +117,19 @@ public class ToeParallelRunner
             // Run the IToeRun instance
             await toeRun.RunAsync();
             
+            // Get the filtered strategies and add them to the thread-safe collection
+            var filteredStrategies = toeRun.GetFilteredStrategies();
+            foreach (var strategy in filteredStrategies)
+            {
+                _allStrategies.Add(strategy);
+            }
+            
             // Get the strategy count and update the synchronized counter
             int strategiesInJob = toeRun.GetStrategyCount();
             int uploadedStrategiesInJob = toeRun.GetUploadedStrategyCount();
             await UpdateStrategyCountAsync(strategiesInJob, uploadedStrategiesInJob, batchId);
             
-            Console.WriteLine($"Thread {threadId} completed job: {job.Name} with {strategiesInJob} strategies, {uploadedStrategiesInJob} uploaded");
+            Console.WriteLine($"Thread {threadId} completed job: {job.Name} with {strategiesInJob} strategies, {filteredStrategies.Count} filtered strategies added to collection");
         }
         catch (Exception ex)
         {
@@ -215,6 +228,66 @@ public class ToeParallelRunner
                 TrainOn = s.TrainOn
             })
             .ToList();
+    }
+    
+    /// <summary>
+    /// Uploads the top strategies based on MaxUploadStrategy configuration
+    /// </summary>
+    /// <param name="batchId">The batch ID to upload strategies to</param>
+    private async Task UploadTopStrategiesAsync(string? batchId)
+    {
+        if (_cloudPlatform == null || string.IsNullOrEmpty(batchId))
+        {
+            Console.WriteLine("No cloud platform or batch ID available, skipping strategy upload.");
+            return;
+        }
+        
+        if (_allStrategies.IsEmpty)
+        {
+            Console.WriteLine("No strategies to upload.");
+            return;
+        }
+        
+        // Convert ConcurrentBag to List for filtering
+        var allStrategiesList = _allStrategies.ToList();
+        Console.WriteLine($"Total strategies collected from all jobs: {allStrategiesList.Count}");
+        
+        // Filter to get only successful strategies (profit > 0) and sort by profit
+        var successfulStrategies = allStrategiesList
+            .Where(s => StrategyFilter.GetProfitByType(s.StrategyResult, _config.FilterProfitPercentage) > 0)
+            .OrderByDescending(s => StrategyFilter.GetProfitByType(s.StrategyResult, _config.FilterProfitPercentage))
+            .ToList();
+        
+        Console.WriteLine($"Successful strategies (profit > 0): {successfulStrategies.Count}");
+        
+        // Take only the top MaxUploadStrategy strategies
+        var strategiesToUpload = successfulStrategies.Take(_config.MaxUploadStrategy).ToList();
+        
+        Console.WriteLine($"Uploading top {strategiesToUpload.Count} strategies (max: {_config.MaxUploadStrategy})");
+        
+        // Upload each strategy
+        foreach (var resultWithStats in strategiesToUpload)
+        {
+            try
+            {
+                // Upload the strategy result
+                string strategyResultId = await _cloudPlatform.AddStrategyResults(batchId, resultWithStats.StrategyResult);
+                
+                // Upload the segment stats if any exist
+                if (resultWithStats.SegmentStats.Any())
+                {
+                    await _cloudPlatform.AddSegmentStats(batchId, strategyResultId, resultWithStats.SegmentStats);
+                }
+                
+                _totalUploadedStrategies++;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to upload strategy: {ex.Message}");
+            }
+        }
+        
+        Console.WriteLine($"Successfully uploaded {_totalUploadedStrategies} strategies to Firebase.");
     }
 
     private async Task UpdateStrategyCountAsync(int strategiesInJob, int uploadedStrategiesInJob, string? batchId)

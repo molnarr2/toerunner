@@ -25,10 +25,9 @@ public class ToeRunnerConfig {
     public required string BigToeSegmentPath { get; set; }
     public FirebaseConfig? Firebase { get; set; }
     /// <summary>
-    /// The percentage of successful strategies to upload. 
-    /// 1.0 = 100%
+    /// The maximum number of strategies to upload. 
     /// </summary>
-    public decimal UploadStrategyPercentage { get; set; }
+    public int MaxUploadStrategy { get; set; }
     
     /// <summary>
     /// To determine if a strategy should be uploaded based on profit percentage.

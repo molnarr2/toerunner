@@ -22,12 +22,12 @@ namespace ToeRunner.ToeRun
         private readonly ToeJob _job;
         private readonly int _id;
         private readonly string? _batchToeRunId;
-        private readonly decimal _uploadStrategyPercentage;
         private readonly FilterPercentageType _filterPercentageType;
         private readonly ICloudPlatform? _cloudPlatform;
         private readonly SegmentConfig? _segmentConfig;
         private int _strategyCount = 0;
         private int _uploadedStrategyCount = 0;
+        private List<StrategyResultWithSegmentStats> _filteredStrategies = new List<StrategyResultWithSegmentStats>();
 
         /// <summary>
         /// Constructor for ToeRunImplementation
@@ -50,7 +50,6 @@ namespace ToeRunner.ToeRun
             _job = job ?? throw new ArgumentNullException(nameof(job));
             _id = id;
             _batchToeRunId = batchToeRunId;
-            _uploadStrategyPercentage = _config.UploadStrategyPercentage;
             _filterPercentageType = _config.FilterProfitPercentage;
             _cloudPlatform = cloudPlatform;
             _segmentConfig = segmentConfig;
@@ -169,41 +168,17 @@ namespace ToeRunner.ToeRun
                 List<StrategyResultWithSegmentStats> strategyResultsWithStats = StrategyResultConverter.ConvertToStrategyResults(strategyEvaluationResult, _job.RunName, _config.UserId, _batchToeRunId ?? string.Empty, _segmentConfig);
                 Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Converted {strategyResultsWithStats.Count} strategy results with segment stats.");
                 
-                // 9. Filter out failed strategies directly using the combined records
+                // 9. Filter to 10% of strategies
                 List<StrategyResultWithSegmentStats> filteredResultsWithStats = StrategyFilter.FilterFailedStrategies(
                     strategyResultsWithStats, 
-                    _uploadStrategyPercentage, 
+                    0.10m, 
                     _filterPercentageType);
                 
-                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Filtered to {filteredResultsWithStats.Count} strategy results after applying filter.");
+                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Filtered to {filteredResultsWithStats.Count} strategy results after applying 10% filter.");
                 
-                // 10. Upload strategies to Firebase if cloud platform is available
-                if (filteredResultsWithStats.Any() && _cloudPlatform != null && !string.IsNullOrEmpty(_batchToeRunId))
-                {
-                    // Upload each strategy result and its segment stats
-                    foreach (var resultWithStats in filteredResultsWithStats)
-                    {
-                        // Upload the strategy result
-                        string strategyResultId = await _cloudPlatform.AddStrategyResults(_batchToeRunId, resultWithStats.StrategyResult);
-                        
-                        // Upload the segment stats if any exist
-                        if (resultWithStats.SegmentStats.Any())
-                        {
-                            await _cloudPlatform.AddSegmentStats(_batchToeRunId, strategyResultId, resultWithStats.SegmentStats);
-                            Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Uploaded {resultWithStats.SegmentStats.Count} segment stats for strategy {strategyResultId}");
-                        }
-                    }
-                    
-                    _uploadedStrategyCount = filteredResultsWithStats.Count;
-                    Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Uploaded {_uploadedStrategyCount} strategy results to Firebase with batch ID: {_batchToeRunId}");
-                }
-                else if (filteredResultsWithStats.Any() && (_cloudPlatform == null || string.IsNullOrEmpty(_batchToeRunId)))
-                {
-                    Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Found {filteredResultsWithStats.Count} strategy results but cloud platform or batch ID is not available. Results not uploaded.");
-                }
-                else {
-                    Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] No successful strategies found after applying filter. No results uploaded.");
-                }
+                // 10. Add to thread-safe list of all strategies
+                _filteredStrategies = filteredResultsWithStats;
+                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Added {_filteredStrategies.Count} strategies to the list for later upload.");
             }
             catch (Exception ex)
             {
@@ -265,6 +240,11 @@ namespace ToeRunner.ToeRun
         public int GetUploadedStrategyCount()
         {
             return _uploadedStrategyCount;
+        }
+        
+        public List<StrategyResultWithSegmentStats> GetFilteredStrategies()
+        {
+            return _filteredStrategies;
         }
         
         private async Task RunProcessAsync(string executablePath, string arguments)

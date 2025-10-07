@@ -63,7 +63,7 @@ namespace ToeRunner.Filter
         /// <param name="firebaseStrategy">The strategy result</param>
         /// <param name="filterPercentageType">The filter percentage type</param>
         /// <returns>The profit value</returns>
-        private static double GetProfitByType(FirebaseStrategyResult firebaseStrategy, FilterPercentageType filterPercentageType)
+        public static double GetProfitByType(FirebaseStrategyResult firebaseStrategy, FilterPercentageType filterPercentageType)
         {
             return filterPercentageType switch
             {
