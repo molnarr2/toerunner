@@ -85,8 +85,14 @@ namespace ToeRunner.Math
         /// </summary>
         /// <param name="executorResult">The executor evaluation result containing segment stats</param>
         /// <param name="feePercentage">Fee percentage as a decimal (e.g., 0.01 = 1%)</param>
+        /// <param name="segmentDetails">Optional list of segment details to map segment numbers to IDs</param>
+        /// <param name="trainOnSegmentIds">Optional list of segment IDs to include (only TrainOn segments). If null, all segments are included.</param>
         /// <returns>The total profit across all segments and trades</returns>
-        public static decimal CalculateTotalProfit(ExecutorEvaluationResult executorResult, decimal feePercentage)
+        public static decimal CalculateTotalProfit(
+            ExecutorEvaluationResult executorResult, 
+            decimal feePercentage,
+            List<PlaybackSegmentDetails>? segmentDetails = null,
+            List<string>? trainOnSegmentIds = null)
         {
             if (executorResult.SegmentStats == null || executorResult.SegmentStats.Count == 0)
             {
@@ -102,6 +108,22 @@ namespace ToeRunner.Math
                 if (segment.ExecutorStats == null || segment.ExecutorStats.TradeStatsList == null)
                 {
                     continue;
+                }
+                
+                // If trainOnSegmentIds is provided, filter segments based on their ID
+                if (trainOnSegmentIds != null && segmentDetails != null)
+                {
+                    // Map segment number to segment ID
+                    if (segment.SegmentNumber >= 0 && segment.SegmentNumber < segmentDetails.Count)
+                    {
+                        string segmentId = segmentDetails[segment.SegmentNumber].Id;
+                        
+                        // Skip this segment if it's not in the trainOn list
+                        if (!trainOnSegmentIds.Contains(segmentId))
+                        {
+                            continue;
+                        }
+                    }
                 }
 
                 // Calculate profit for each trade in this segment and add to total

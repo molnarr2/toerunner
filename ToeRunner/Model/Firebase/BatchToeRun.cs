@@ -3,6 +3,25 @@ using ToeRunner.Firebase;
 
 namespace ToeRunner.Model.Firebase;
 
+/// <summary>
+/// Information about a segment's training status
+/// </summary>
+[FirestoreData]
+public class SegmentTrainInfo
+{
+    /// <summary>
+    /// Unique identifier for the segment
+    /// </summary>
+    [FirestoreProperty("segmentId")]
+    public string SegmentId { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// Whether this segment is used for training
+    /// </summary>
+    [FirestoreProperty("trainOn")]
+    public bool TrainOn { get; set; }
+}
+
 [FirestoreData]
 public class BatchToeRun {
     [FirestoreProperty("id")]
@@ -27,4 +46,7 @@ public class BatchToeRun {
     
     [FirestoreProperty("uploadedStrategies")]
     public long UploadedStrategies { get; set; }
+    
+    [FirestoreProperty("segmentTrainInfo")]
+    public List<SegmentTrainInfo> SegmentTrainInfo { get; set; } = new();
 }

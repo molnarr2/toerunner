@@ -25,6 +25,7 @@ namespace ToeRunner.ToeRun
         private readonly decimal _uploadStrategyPercentage;
         private readonly FilterPercentageType _filterPercentageType;
         private readonly ICloudPlatform? _cloudPlatform;
+        private readonly SegmentConfig? _segmentConfig;
         private int _strategyCount = 0;
         private int _uploadedStrategyCount = 0;
 
@@ -36,12 +37,14 @@ namespace ToeRunner.ToeRun
         /// <param name="id">Unique identifier for this run</param>
         /// <param name="batchToeRunId">The ID of the batch run in Firebase, can be null</param>
         /// <param name="cloudPlatform">Cloud platform for uploading results, can be null</param>
+        /// <param name="segmentConfig">Optional SegmentConfig for filtering segments based on TrainOn field</param>
         public ToeRunImplementation(
             ToeRunnerConfig config, 
             ToeJob job, 
             int id, 
             string? batchToeRunId,
-            ICloudPlatform? cloudPlatform)
+            ICloudPlatform? cloudPlatform,
+            SegmentConfig? segmentConfig)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _job = job ?? throw new ArgumentNullException(nameof(job));
@@ -50,6 +53,7 @@ namespace ToeRunner.ToeRun
             _uploadStrategyPercentage = _config.UploadStrategyPercentage;
             _filterPercentageType = _config.FilterProfitPercentage;
             _cloudPlatform = cloudPlatform;
+            _segmentConfig = segmentConfig;
             _uniqueInstanceId = System.Threading.Interlocked.Increment(ref _globalInstanceCounter);
         }
 
@@ -70,6 +74,7 @@ namespace ToeRunner.ToeRun
                 int step = 1;
                 Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Step {step++}: Starting RunAsync");
                 PrintJobInfo();
+                
                 // Validate required configuration
                 if (string.IsNullOrEmpty(_config.WorkspacePath))
                 {
@@ -161,7 +166,7 @@ namespace ToeRunner.ToeRun
                     Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Strategy evaluation result is null. Cannot convert to strategy results.");
                     return;
                 }
-                List<StrategyResultWithSegmentStats> strategyResultsWithStats = StrategyResultConverter.ConvertToStrategyResults(strategyEvaluationResult, _job.RunName, _config.UserId, _batchToeRunId ?? string.Empty);
+                List<StrategyResultWithSegmentStats> strategyResultsWithStats = StrategyResultConverter.ConvertToStrategyResults(strategyEvaluationResult, _job.RunName, _config.UserId, _batchToeRunId ?? string.Empty, _segmentConfig);
                 Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Converted {strategyResultsWithStats.Count} strategy results with segment stats.");
                 
                 // 9. Filter out failed strategies directly using the combined records

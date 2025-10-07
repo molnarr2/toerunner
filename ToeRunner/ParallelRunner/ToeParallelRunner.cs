@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Concurrent;
+using System.Text.Json;
 using ToeRunner.Model;
+using ToeRunner.Model.BigToe;
 using ToeRunner.Model.Firebase;
 using ToeRunner.Plugin;
 using ToeRunner.ToeRun;
@@ -15,6 +17,7 @@ public class ToeParallelRunner
     private readonly ToeRunnerConfig _config;
     private readonly IToeRunFactory _toeRunFactory;
     private readonly ICloudPlatform? _cloudPlatform;
+    private readonly SegmentConfig? _segmentConfig;
     private int _totalStrategiesProcessed = 0;
     private int _totalUploadedStrategies = 0;
     private int _jobRuns = 0;
@@ -32,6 +35,7 @@ public class ToeParallelRunner
         _config = config ?? throw new ArgumentNullException(nameof(config));
         _toeRunFactory = toeRunFactory ?? throw new ArgumentNullException(nameof(toeRunFactory));
         _cloudPlatform = cloudPlatform;
+        _segmentConfig = LoadSegmentConfig();
     }
     
     /// <summary>
@@ -102,7 +106,7 @@ public class ToeParallelRunner
         try
         {
             // Create an IToeRun instance using the factory
-            IToeRun toeRun = _toeRunFactory.Create(job, threadId, batchId);
+            IToeRun toeRun = _toeRunFactory.Create(job, threadId, batchId, _segmentConfig);
             
             // Run the IToeRun instance
             await toeRun.RunAsync();
@@ -142,6 +146,7 @@ public class ToeParallelRunner
                 Server = _config.Server,
                 StartTimestamp = DateTime.Now,
                 JobCount = jobQueueCount,
+                SegmentTrainInfo = ConvertToSegmentTrainInfo(_segmentConfig)
             };
             
             var batchId = await _cloudPlatform.AddBatchToeRun(batchToeRun);
@@ -153,6 +158,63 @@ public class ToeParallelRunner
             Console.WriteLine($"Failed to create batch record: {ex.Message}");
             return null;
         }
+    }
+    
+    /// <summary>
+    /// Loads the SegmentConfig from the configured path
+    /// </summary>
+    /// <returns>SegmentConfig object, or null if file doesn't exist or can't be loaded</returns>
+    private SegmentConfig? LoadSegmentConfig()
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(_config.BigToeSegmentPath))
+            {
+                Console.WriteLine("BigToeSegmentPath is not configured.");
+                return null;
+            }
+            
+            if (!File.Exists(_config.BigToeSegmentPath))
+            {
+                Console.WriteLine($"SegmentConfig file not found at {_config.BigToeSegmentPath}.");
+                return null;
+            }
+            
+            string jsonContent = File.ReadAllText(_config.BigToeSegmentPath);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            var segmentConfig = JsonSerializer.Deserialize<SegmentConfig>(jsonContent, options);
+            Console.WriteLine($"Loaded SegmentConfig with {segmentConfig?.Segments?.Count ?? 0} segments.");
+            return segmentConfig;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading SegmentConfig: {ex.Message}");
+            return null;
+        }
+    }
+    
+    /// <summary>
+    /// Converts SegmentConfig to a list of SegmentTrainInfo for BatchToeRun
+    /// </summary>
+    /// <param name="segmentConfig">The SegmentConfig to convert</param>
+    /// <returns>List of SegmentTrainInfo containing segment IDs and their TrainOn status</returns>
+    private List<SegmentTrainInfo> ConvertToSegmentTrainInfo(SegmentConfig? segmentConfig)
+    {
+        if (segmentConfig?.Segments == null || segmentConfig.Segments.Count == 0)
+        {
+            return new List<SegmentTrainInfo>();
+        }
+        
+        return segmentConfig.Segments
+            .Select(s => new SegmentTrainInfo
+            {
+                SegmentId = s.Id,
+                TrainOn = s.TrainOn
+            })
+            .ToList();
     }
 
     private async Task UpdateStrategyCountAsync(int strategiesInJob, int uploadedStrategiesInJob, string? batchId)

@@ -1,4 +1,5 @@
 using ToeRunner.Model;
+using ToeRunner.Model.BigToe;
 using ToeRunner.Plugin;
 
 namespace ToeRunner.ToeRun;
@@ -28,14 +29,16 @@ public class ToeRunFactory : IToeRunFactory
     /// <param name="job">The ToeJob to be executed</param>
     /// <param name="id">Unique identifier for the run</param>
     /// <param name="batchToeRunId">The ID of the batch run in Firebase</param>
+    /// <param name="segmentConfig">Optional SegmentConfig for filtering segments based on TrainOn field</param>
     /// <returns>An IToeRun implementation</returns>
-    public IToeRun Create(ToeJob job, int id, string batchToeRunId)
+    public IToeRun Create(ToeJob job, int id, string? batchToeRunId, SegmentConfig? segmentConfig)
     {
         return new ToeRunImplementation(
             _config, 
             job, 
             id, 
             batchToeRunId,
-            _cloudPlatform);
+            _cloudPlatform,
+            segmentConfig);
     }
 }

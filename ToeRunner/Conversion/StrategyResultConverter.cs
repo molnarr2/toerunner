@@ -35,8 +35,9 @@ namespace ToeRunner.Conversion
         /// <param name="candlestick">The candlestick value</param>
         /// <param name="userId">The user identifier</param>
         /// <param name="batchToeRunId">The batch toe run identifier</param>
+        /// <param name="segmentConfig">Optional SegmentConfig to filter segments based on TrainOn field</param>
         /// <returns>A List of StrategyResultWithSegmentStats objects</returns>
-        public static List<StrategyResultWithSegmentStats> ConvertToStrategyResults(StrategyEvaluationResult evaluationResult, string runName, string userId, string batchToeRunId)
+        public static List<StrategyResultWithSegmentStats> ConvertToStrategyResults(StrategyEvaluationResult evaluationResult, string runName, string userId, string batchToeRunId, SegmentConfig? segmentConfig = null)
         {
             if (evaluationResult == null || evaluationResult.ExecutorEvaluationResults == null)
             {
@@ -63,23 +64,31 @@ namespace ToeRunner.Conversion
                 // Find the matching ExecutorContainerConfig
                 if (evaluationResult?.TradeContainerConfig?.Executors != null)
                 {
-                    strategyResult.ExecutorContainerConfig = evaluationResult.TradeContainerConfig.Executors
+                    var matchingExecutor = evaluationResult.TradeContainerConfig.Executors
                         .FirstOrDefault(e => e?.Name == executorEvalResult?.ExecutorName);
+                    if (matchingExecutor != null)
+                    {
+                        strategyResult.ExecutorContainerConfig = matchingExecutor;
+                    }
                 }
 
+                // Get list of segment IDs where TrainOn is true from SegmentConfig
+                var trainOnSegmentIds = GetTrainOnSegmentIds(segmentConfig);
+                
                 // Calculate profit fields using TradeCalculator
                 // The fee percentages are specified as decimal values where 0.008 = 0.8%
-                strategyResult.TotalProfit00 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.00m);
-                strategyResult.TotalProfit08 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.008m);
-                strategyResult.TotalProfit10 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.01m);
-                strategyResult.TotalProfit15 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.015m);
-                strategyResult.TotalProfit20 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.02m);
-                strategyResult.TotalProfit25 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.025m);
-                strategyResult.TotalProfit30 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.03m);
-                strategyResult.TotalProfit35 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.035m);
-                strategyResult.TotalProfit40 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.04m);
-                strategyResult.TotalProfit50 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.05m);
-                strategyResult.TotalProfit60 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.06m);
+                // Pass segment details and trainOn filter to only include training segments
+                strategyResult.TotalProfit00 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.00m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
+                strategyResult.TotalProfit08 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.008m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
+                strategyResult.TotalProfit10 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.01m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
+                strategyResult.TotalProfit15 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.015m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
+                strategyResult.TotalProfit20 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.02m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
+                strategyResult.TotalProfit25 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.025m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
+                strategyResult.TotalProfit30 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.03m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
+                strategyResult.TotalProfit35 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.035m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
+                strategyResult.TotalProfit40 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.04m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
+                strategyResult.TotalProfit50 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.05m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
+                strategyResult.TotalProfit60 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.06m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
 
                 // Create the combined result
                 var resultWithSegmentStats = new StrategyResultWithSegmentStats
@@ -111,6 +120,29 @@ namespace ToeRunner.Conversion
                 .Where(sd => sd != null && !string.IsNullOrEmpty(sd.Id))
                 .Select(sd => sd.Id)
                 .ToList();
+        }
+        
+        /// <summary>
+        /// Gets a list of segment IDs where TrainOn is true from SegmentConfig
+        /// </summary>
+        /// <param name="segmentConfig">The SegmentConfig containing segment information</param>
+        /// <returns>List of segment IDs where TrainOn is true, or null if no filtering should be applied</returns>
+        private static List<string>? GetTrainOnSegmentIds(SegmentConfig? segmentConfig)
+        {
+            if (segmentConfig?.Segments == null || segmentConfig.Segments.Count == 0)
+            {
+                // No segment config available, include all segments
+                return null;
+            }
+            
+            // Filter segments where TrainOn is true and return their IDs
+            var trainOnSegmentIds = segmentConfig.Segments
+                .Where(s => s.TrainOn)
+                .Select(s => s.Id)
+                .ToList();
+            
+            // If no segments have TrainOn=true, return null to include all segments
+            return trainOnSegmentIds.Count > 0 ? trainOnSegmentIds : null;
         }
         
         /// <summary>
