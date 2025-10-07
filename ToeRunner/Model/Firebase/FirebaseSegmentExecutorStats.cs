@@ -53,6 +53,8 @@ public class FirebaseSegmentExecutorStats {
     // Profit calculations at different fee percentages
     [FirestoreProperty("p00")]
     public double TotalProfit00 { get; set; }
+    [FirestoreProperty("p001")]
+    public double TotalProfit001 { get; set; }
     [FirestoreProperty("p08")]
     public double TotalProfit08 { get; set; }
     [FirestoreProperty("p10")]
@@ -63,14 +65,4 @@ public class FirebaseSegmentExecutorStats {
     public double TotalProfit20 { get; set; }
     [FirestoreProperty("p25")]
     public double TotalProfit25 { get; set; }
-    [FirestoreProperty("p30")]
-    public double TotalProfit30 { get; set; }
-    [FirestoreProperty("p35")]
-    public double TotalProfit35 { get; set; }
-    [FirestoreProperty("p40")]
-    public double TotalProfit40 { get; set; }
-    [FirestoreProperty("p50")]
-    public double TotalProfit50 { get; set; }
-    [FirestoreProperty("p60")]
-    public double TotalProfit60 { get; set; }
 }

@@ -68,16 +68,12 @@ namespace ToeRunner.Filter
             return filterPercentageType switch
             {
                 FilterPercentageType.p00 => firebaseStrategy.TotalProfit00,
+                FilterPercentageType.p001 => firebaseStrategy.TotalProfit001,
                 FilterPercentageType.p08 => firebaseStrategy.TotalProfit08,
                 FilterPercentageType.p10 => firebaseStrategy.TotalProfit10,
                 FilterPercentageType.p15 => firebaseStrategy.TotalProfit15,
                 FilterPercentageType.p20 => firebaseStrategy.TotalProfit20,
                 FilterPercentageType.p25 => firebaseStrategy.TotalProfit25,
-                FilterPercentageType.p30 => firebaseStrategy.TotalProfit30,
-                FilterPercentageType.p35 => firebaseStrategy.TotalProfit35,
-                FilterPercentageType.p40 => firebaseStrategy.TotalProfit40,
-                FilterPercentageType.p50 => firebaseStrategy.TotalProfit50,
-                FilterPercentageType.p60 => firebaseStrategy.TotalProfit60,
                 _ => throw new ArgumentException($"Unsupported filter percentage type: {filterPercentageType}")
             };
         }

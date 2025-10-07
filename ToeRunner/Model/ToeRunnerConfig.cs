@@ -2,16 +2,12 @@ namespace ToeRunner.Model;
 
 public enum FilterPercentageType {
     p00,
+    p001,
     p08,
     p10,
     p15,
     p20,
-    p25,
-    p30,
-    p35,
-    p40,
-    p50,
-    p60
+    p25
 }
 
 public class ToeRunnerConfig {

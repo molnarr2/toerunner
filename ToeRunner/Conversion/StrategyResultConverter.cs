@@ -75,20 +75,29 @@ namespace ToeRunner.Conversion
                 // Get list of segment IDs where TrainOn is true from SegmentConfig
                 var trainOnSegmentIds = GetTrainOnSegmentIds(segmentConfig);
                 
-                // Calculate profit fields using TradeCalculator
+                // Get list of segment IDs where TrainOn is false (test segments)
+                var testSegmentIds = GetTestSegmentIds(segmentConfig);
+                
+                // Calculate training profit fields using TradeCalculator
                 // The fee percentages are specified as decimal values where 0.008 = 0.8%
                 // Pass segment details and trainOn filter to only include training segments
                 strategyResult.TotalProfit00 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.00m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
+                strategyResult.TotalProfit001 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.001m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
                 strategyResult.TotalProfit08 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.008m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
                 strategyResult.TotalProfit10 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.01m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
                 strategyResult.TotalProfit15 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.015m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
                 strategyResult.TotalProfit20 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.02m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
                 strategyResult.TotalProfit25 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.025m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
-                strategyResult.TotalProfit30 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.03m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
-                strategyResult.TotalProfit35 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.035m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
-                strategyResult.TotalProfit40 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.04m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
-                strategyResult.TotalProfit50 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.05m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
-                strategyResult.TotalProfit60 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.06m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
+                
+                // Calculate testing profit fields using TradeCalculator
+                // Pass segment details and test filter to only include testing segments
+                strategyResult.TestProfit00 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.00m, evaluationResult?.SegmentDetails, testSegmentIds);
+                strategyResult.TestProfit001 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.001m, evaluationResult?.SegmentDetails, testSegmentIds);
+                strategyResult.TestProfit08 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.008m, evaluationResult?.SegmentDetails, testSegmentIds);
+                strategyResult.TestProfit10 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.01m, evaluationResult?.SegmentDetails, testSegmentIds);
+                strategyResult.TestProfit15 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.015m, evaluationResult?.SegmentDetails, testSegmentIds);
+                strategyResult.TestProfit20 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.02m, evaluationResult?.SegmentDetails, testSegmentIds);
+                strategyResult.TestProfit25 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.025m, evaluationResult?.SegmentDetails, testSegmentIds);
 
                 // Create the combined result
                 var resultWithSegmentStats = new StrategyResultWithSegmentStats
@@ -146,6 +155,29 @@ namespace ToeRunner.Conversion
         }
         
         /// <summary>
+        /// Gets a list of segment IDs where TrainOn is false from SegmentConfig (test segments)
+        /// </summary>
+        /// <param name="segmentConfig">The SegmentConfig containing segment information</param>
+        /// <returns>List of segment IDs where TrainOn is false, or null if no filtering should be applied</returns>
+        private static List<string>? GetTestSegmentIds(SegmentConfig? segmentConfig)
+        {
+            if (segmentConfig?.Segments == null || segmentConfig.Segments.Count == 0)
+            {
+                // No segment config available, include all segments
+                return null;
+            }
+            
+            // Filter segments where TrainOn is false and return their IDs
+            var testSegmentIds = segmentConfig.Segments
+                .Where(s => !s.TrainOn)
+                .Select(s => s.Id)
+                .ToList();
+            
+            // If no segments have TrainOn=false, return null to include all segments
+            return testSegmentIds.Count > 0 ? testSegmentIds : null;
+        }
+        
+        /// <summary>
         /// Converts a list of SegmentExecutorStats to a list of FirebaseSegmentExecutorStats
         /// </summary>
         /// <param name="segmentStats">The list of SegmentExecutorStats to convert</param>
@@ -186,16 +218,12 @@ namespace ToeRunner.Conversion
                     
                     // Calculate profit fields using TradeCalculator at different fee percentages
                     TotalProfit00 = (double)TradeCalculator.CalculateSegmentProfit(segmentStat, 0.00m),
+                    TotalProfit001 = (double)TradeCalculator.CalculateSegmentProfit(segmentStat, 0.001m),
                     TotalProfit08 = (double)TradeCalculator.CalculateSegmentProfit(segmentStat, 0.008m),
                     TotalProfit10 = (double)TradeCalculator.CalculateSegmentProfit(segmentStat, 0.01m),
                     TotalProfit15 = (double)TradeCalculator.CalculateSegmentProfit(segmentStat, 0.015m),
                     TotalProfit20 = (double)TradeCalculator.CalculateSegmentProfit(segmentStat, 0.02m),
-                    TotalProfit25 = (double)TradeCalculator.CalculateSegmentProfit(segmentStat, 0.025m),
-                    TotalProfit30 = (double)TradeCalculator.CalculateSegmentProfit(segmentStat, 0.03m),
-                    TotalProfit35 = (double)TradeCalculator.CalculateSegmentProfit(segmentStat, 0.035m),
-                    TotalProfit40 = (double)TradeCalculator.CalculateSegmentProfit(segmentStat, 0.04m),
-                    TotalProfit50 = (double)TradeCalculator.CalculateSegmentProfit(segmentStat, 0.05m),
-                    TotalProfit60 = (double)TradeCalculator.CalculateSegmentProfit(segmentStat, 0.06m)
+                    TotalProfit25 = (double)TradeCalculator.CalculateSegmentProfit(segmentStat, 0.025m)
                 };
 
                 foreach (var tradeStat in executorStats.TradeStatsList)
