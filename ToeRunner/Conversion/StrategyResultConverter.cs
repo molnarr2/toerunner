@@ -158,7 +158,7 @@ namespace ToeRunner.Conversion
         /// Gets a list of segment IDs where TrainOn is false from SegmentConfig (test segments)
         /// </summary>
         /// <param name="segmentConfig">The SegmentConfig containing segment information</param>
-        /// <returns>List of segment IDs where TrainOn is false, or null if no filtering should be applied</returns>
+        /// <returns>List of segment IDs where TrainOn is false, or empty list if no test segments exist</returns>
         private static List<string>? GetTestSegmentIds(SegmentConfig? segmentConfig)
         {
             if (segmentConfig?.Segments == null || segmentConfig.Segments.Count == 0)
@@ -168,13 +168,13 @@ namespace ToeRunner.Conversion
             }
             
             // Filter segments where TrainOn is false and return their IDs
+            // If no segments have TrainOn=false, return empty list to exclude all segments
             var testSegmentIds = segmentConfig.Segments
                 .Where(s => !s.TrainOn)
                 .Select(s => s.Id)
                 .ToList();
             
-            // If no segments have TrainOn=false, return null to include all segments
-            return testSegmentIds.Count > 0 ? testSegmentIds : null;
+            return testSegmentIds;
         }
         
         /// <summary>

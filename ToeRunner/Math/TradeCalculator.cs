@@ -119,6 +119,7 @@ namespace ToeRunner.Math
                         string segmentId = segmentDetails[segment.SegmentNumber].Id;
                         
                         // Skip this segment if it's not in the trainOn list
+                        // Note: If trainOnSegmentIds is an empty list, all segments will be skipped
                         if (!trainOnSegmentIds.Contains(segmentId))
                         {
                             continue;

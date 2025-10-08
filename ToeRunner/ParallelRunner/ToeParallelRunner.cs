@@ -196,7 +196,9 @@ public class ToeParallelRunner
             string jsonContent = File.ReadAllText(_config.BigToeSegmentPath);
             var options = new JsonSerializerOptions
             {
-                PropertyNameCaseInsensitive = true
+                PropertyNameCaseInsensitive = true,
+                AllowTrailingCommas = true // Set this to true to allow trailing commas
+                
             };
             var segmentConfig = JsonSerializer.Deserialize<SegmentConfig>(jsonContent, options);
             Console.WriteLine($"Loaded SegmentConfig with {segmentConfig?.Segments?.Count ?? 0} segments.");
