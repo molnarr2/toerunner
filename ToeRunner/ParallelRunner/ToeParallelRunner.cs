@@ -118,12 +118,7 @@ public class ToeParallelRunner
             // Run the IToeRun instance
             await toeRun.RunAsync();
             
-            // Get the strategy count and update the synchronized counter
-            int strategiesInJob = toeRun.GetStrategyCount();
-            int uploadedStrategiesInJob = toeRun.GetUploadedStrategyCount();
-            await UpdateStrategyCountAsync(strategiesInJob, uploadedStrategiesInJob, batchId);
-            
-            Console.WriteLine($"Thread {threadId} completed job: {job.Name} with {strategiesInJob} strategies");
+            Console.WriteLine($"Thread {threadId} completed job: {job.Name}");
         }
         catch (Exception ex)
         {
@@ -284,39 +279,6 @@ public class ToeParallelRunner
         Console.WriteLine($"Successfully uploaded {_totalUploadedStrategies} strategies to Firebase.");
     }
 
-    private async Task UpdateStrategyCountAsync(int strategiesInJob, int uploadedStrategiesInJob, string? batchId)
-    {
-        if (string.IsNullOrEmpty(batchId) || _cloudPlatform == null)
-        {
-            return;
-        }
-        
-        long totalStrategies = 0;
-        long totalUploadedStrategies = 0;
-        var shouldUpdate = false;
-        
-        lock (_lockObject)
-        {
-            _totalStrategiesProcessed += strategiesInJob;
-            _totalUploadedStrategies += uploadedStrategiesInJob;
-            _jobRuns++;
-            
-            if (_jobRuns % STRATEGY_UPDATE_THRESHOLD == 0 & _jobRuns > 0)
-            {
-                shouldUpdate = true;
-                totalStrategies = _totalStrategiesProcessed;
-                totalUploadedStrategies = _totalUploadedStrategies;
-            }
-        }
-        
-        // Only update if we've reached the threshold
-        if (shouldUpdate)
-        {
-            // Use await instead of fire-and-forget
-            await UpdateBatchToeRunAsync(batchId, totalStrategies, totalUploadedStrategies);
-        }
-    }
-    
     private async Task UpdateBatchToeRunAsync(string? batchId, long totalStrategies, long totalUploadedStrategies)
     {
         try
