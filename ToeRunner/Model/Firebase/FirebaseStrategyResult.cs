@@ -57,7 +57,16 @@ public class FirebaseStrategyResult {
     public double TestProfit20 { get; set; }
     [FirestoreProperty("t25")]
     public double TestProfit25 { get; set; }
+        
+    // Validation with 0.01% fee per buy/sell
+    [FirestoreProperty("validationWithFee001")]
+    public FirebaseStrategyValidation ValidationWithFee001 { get; set; }
     
-    [FirestoreProperty("validation")]
-    public FirebaseStrategyValidation Validation { get; set; }
+    // Validation with 0.8% fee per buy/sell
+    [FirestoreProperty("validationWithFee08")]
+    public FirebaseStrategyValidation ValidationWithFee08 { get; set; }
+    
+    // Validation with 0.15% fee per buy/sell
+    [FirestoreProperty("validationWithFee15")]
+    public FirebaseStrategyValidation ValidationWithFee15 { get; set; }
 }
