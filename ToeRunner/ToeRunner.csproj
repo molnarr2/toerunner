@@ -14,6 +14,7 @@
       <Folder Include="Math\" />
       <Folder Include="ParallelRunner\" />
       <Folder Include="Setup\" />
+      <Folder Include="StrategyAnalysis\" />
     </ItemGroup>
 
     <ItemGroup>

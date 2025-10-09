@@ -57,4 +57,7 @@ public class FirebaseStrategyResult {
     public double TestProfit20 { get; set; }
     [FirestoreProperty("t25")]
     public double TestProfit25 { get; set; }
+    
+    [FirestoreProperty("validation")]
+    public FirebaseStrategyValidation Validation { get; set; }
 }
