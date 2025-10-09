@@ -18,13 +18,27 @@ Defines the contract for strategy analysis implementations:
 - `GeneratePerformance(segmentStats, feePerTrade)`: Returns performance metrics if strategy passes hard filters, null otherwise
 - `GenerateValidation(testSegmentStats, validationSegmentStats, feePerTrade)`: Always returns validation results with quality scores
 
-### 3. **Method1CompositeAnalyzer**
+### 3. **BaseStrategyAnalyzer** (Abstract Base Class)
+Provides common functionality for all analyzers:
+- Implements `IStrategyAnalyzer` interface
+- Contains shared logic for performance calculation, consistency scoring, and statistical methods
+- Defines abstract methods for subclasses to implement:
+  - `CalculateQualityScore()`: Algorithm-specific quality score calculation
+  - `GenerateValidationNotes()`: Algorithm-specific validation notes
+- Protected helper methods:
+  - `GetProfitsForFee()`: Extracts profits at specified fee level
+  - `PassesHardFilters()`: Applies hard filters to profits
+  - `CalculatePerformance()`: Calculates all performance metrics
+  - `CalculateConsistencyScore()`: Compares test vs validation performance
+  - Statistical methods: `CalculateMedian()`, `CalculateStdDev()`, `CalculateTopTwoSegmentContribution()`, `CalculateTrimmedMean()`
+
+### 4. **Method1CompositeAnalyzer**
 Implementation using direct weighted sum of raw metrics:
 - **Pros**: Simple, fast, easy to understand
 - **Cons**: Arbitrary scaling factors, fragile when adding metrics
 - **Formula**: `QualityScore = (WinRate × 0.25) + (SharpeRatio × 20 × 0.20) + (MedianProfit × 100 × 0.20) + (ProfitAtFees × 100 × 0.15) + (ConsistencyScore × 0.10) + (OutlierPenalty × 0.10)`
 
-### 4. **Method6MCDAAnalyzer** (RECOMMENDED)
+### 5. **Method6MCDAAnalyzer** (RECOMMENDED)
 Implementation using normalized metrics on 0-100 scale:
 - **Pros**: Mathematically sound, no arbitrary scaling, industry standard
 - **Cons**: Slightly more complex
@@ -34,7 +48,7 @@ Implementation using normalized metrics on 0-100 scale:
   3. Combine with weights: Profit (30%), Sharpe (25%), WinRate (25%), Consistency (20%)
   4. Apply penalties for high risk and outlier dependence
 
-### 5. **AnalyzedStrategy** (Data Structure)
+### 6. **AnalyzedStrategy** (Data Structure)
 Thread-safe container holding:
 - Original `StrategyResultWithSegmentStats`
 - `Validation001`: Validation at 0.01% fee (used for ranking)
@@ -42,7 +56,7 @@ Thread-safe container holding:
 - `Validation15`: Validation at 1.5% fee
 - `QualityScore`: The ranking score from Validation001
 
-### 6. **StrategyAnalysisService** (Main Service)
+### 7. **StrategyAnalysisService** (Main Service)
 Thread-safe service for analyzing and tracking top strategies:
 - Maintains top 100 strategies ordered by quality score
 - Uses semaphore for thread-safe operations
