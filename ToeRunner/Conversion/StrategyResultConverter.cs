@@ -75,27 +75,6 @@ namespace ToeRunner.Conversion
                 // Get list of segment IDs where TrainOn is false (test segments)
                 var testSegmentIds = GetTestSegmentIds(segmentConfig);
                 
-                // Calculate training profit fields using TradeCalculator
-                // The fee percentages are specified as decimal values where 0.008 = 0.8%
-                // Pass segment details and trainOn filter to only include training segments
-                strategyResult.TotalProfit00 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.00m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
-                strategyResult.TotalProfit001 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.001m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
-                strategyResult.TotalProfit08 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.008m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
-                strategyResult.TotalProfit10 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.01m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
-                strategyResult.TotalProfit15 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.015m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
-                strategyResult.TotalProfit20 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.02m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
-                strategyResult.TotalProfit25 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.025m, evaluationResult?.SegmentDetails, trainOnSegmentIds);
-                
-                // Calculate testing profit fields using TradeCalculator
-                // Pass segment details and test filter to only include testing segments
-                strategyResult.TestProfit00 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.00m, evaluationResult?.SegmentDetails, testSegmentIds);
-                strategyResult.TestProfit001 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.001m, evaluationResult?.SegmentDetails, testSegmentIds);
-                strategyResult.TestProfit08 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.008m, evaluationResult?.SegmentDetails, testSegmentIds);
-                strategyResult.TestProfit10 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.01m, evaluationResult?.SegmentDetails, testSegmentIds);
-                strategyResult.TestProfit15 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.015m, evaluationResult?.SegmentDetails, testSegmentIds);
-                strategyResult.TestProfit20 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.02m, evaluationResult?.SegmentDetails, testSegmentIds);
-                strategyResult.TestProfit25 = (double)TradeCalculator.CalculateTotalProfit(executorEvalResult!, 0.025m, evaluationResult?.SegmentDetails, testSegmentIds);
-
                 // Create the combined result
                 var resultWithSegmentStats = new StrategyResultWithSegmentStats
                 {

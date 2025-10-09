@@ -2,11 +2,11 @@ using System;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using ToeRunner.Conversion;
-using ToeRunner.Filter;
 using ToeRunner.Model;
 using ToeRunner.Model.BigToe;
 using ToeRunner.Model.Firebase;
 using ToeRunner.Plugin;
+using ToeRunner.StrategyAnalysis;
 using ToeRunner.ToeRun;
 
 namespace ToeRunner.ParallelRunner;
@@ -20,12 +20,12 @@ public class ToeParallelRunner
     private readonly IToeRunFactory _toeRunFactory;
     private readonly ICloudPlatform? _cloudPlatform;
     private readonly SegmentConfig? _segmentConfig;
+    private readonly StrategyAnalysisService _strategyAnalysisService;
     private int _totalStrategiesProcessed = 0;
     private int _totalUploadedStrategies = 0;
     private int _jobRuns = 0;
     private readonly object _lockObject = new object();
     private const int STRATEGY_UPDATE_THRESHOLD = 10;
-    private readonly ConcurrentBag<StrategyResultWithSegmentStats> _allStrategies = new ConcurrentBag<StrategyResultWithSegmentStats>();
     
     /// <summary>
     /// Initializes a new instance of the ToeParallelRunner class.
@@ -39,6 +39,7 @@ public class ToeParallelRunner
         _toeRunFactory = toeRunFactory ?? throw new ArgumentNullException(nameof(toeRunFactory));
         _cloudPlatform = cloudPlatform;
         _segmentConfig = LoadSegmentConfig();
+        _strategyAnalysisService = new StrategyAnalysisService(StrategyAnalysisType.MCDA);
     }
     
     /// <summary>
@@ -112,24 +113,17 @@ public class ToeParallelRunner
         try
         {
             // Create an IToeRun instance using the factory
-            IToeRun toeRun = _toeRunFactory.Create(job, threadId, batchId, _segmentConfig);
+            IToeRun toeRun = _toeRunFactory.Create(job, threadId, batchId, _segmentConfig, _strategyAnalysisService);
             
             // Run the IToeRun instance
             await toeRun.RunAsync();
-            
-            // Get the filtered strategies and add them to the thread-safe collection
-            var filteredStrategies = toeRun.GetFilteredStrategies();
-            foreach (var strategy in filteredStrategies)
-            {
-                _allStrategies.Add(strategy);
-            }
             
             // Get the strategy count and update the synchronized counter
             int strategiesInJob = toeRun.GetStrategyCount();
             int uploadedStrategiesInJob = toeRun.GetUploadedStrategyCount();
             await UpdateStrategyCountAsync(strategiesInJob, uploadedStrategiesInJob, batchId);
             
-            Console.WriteLine($"Thread {threadId} completed job: {job.Name} with {strategiesInJob} strategies, {filteredStrategies.Count} filtered strategies added to collection");
+            Console.WriteLine($"Thread {threadId} completed job: {job.Name} with {strategiesInJob} strategies");
         }
         catch (Exception ex)
         {
@@ -244,41 +238,39 @@ public class ToeParallelRunner
             return;
         }
         
-        if (_allStrategies.IsEmpty)
+        // Get top strategies from the analysis service
+        var topStrategies = await _strategyAnalysisService.GetTopStrategiesAsync();
+        
+        if (topStrategies.Count == 0)
         {
             Console.WriteLine("No strategies to upload.");
             return;
         }
         
-        // Convert ConcurrentBag to List for filtering
-        var allStrategiesList = _allStrategies.ToList();
-        Console.WriteLine($"Total strategies collected from all jobs: {allStrategiesList.Count}");
-        
-        // Filter to get only successful strategies (profit > 0) and sort by profit
-        var successfulStrategies = allStrategiesList
-            .Where(s => StrategyFilter.GetProfitByType(s.StrategyResult, _config.FilterProfitPercentage) > 0)
-            .OrderByDescending(s => StrategyFilter.GetProfitByType(s.StrategyResult, _config.FilterProfitPercentage))
-            .ToList();
-        
-        Console.WriteLine($"Successful strategies (profit > 0): {successfulStrategies.Count}");
+        Console.WriteLine($"Total top strategies from analysis service: {topStrategies.Count}");
         
         // Take only the top MaxUploadStrategy strategies
-        var strategiesToUpload = successfulStrategies.Take(_config.MaxUploadStrategy).ToList();
+        var strategiesToUpload = topStrategies.Take(_config.MaxUploadStrategy).ToList();
         
         Console.WriteLine($"Uploading top {strategiesToUpload.Count} strategies (max: {_config.MaxUploadStrategy})");
         
-        // Upload each strategy
-        foreach (var resultWithStats in strategiesToUpload)
+        // Upload each strategy with its validation results
+        foreach (var analyzedStrategy in strategiesToUpload)
         {
             try
             {
+                // Add validation results to the strategy result
+                analyzedStrategy.StrategyResult.StrategyResult.ValidationWithFee001 = analyzedStrategy.Validation001;
+                analyzedStrategy.StrategyResult.StrategyResult.ValidationWithFee08 = analyzedStrategy.Validation08;
+                analyzedStrategy.StrategyResult.StrategyResult.ValidationWithFee15 = analyzedStrategy.Validation15;
+                
                 // Upload the strategy result
-                string strategyResultId = await _cloudPlatform.AddStrategyResults(batchId, resultWithStats.StrategyResult);
+                string strategyResultId = await _cloudPlatform.AddStrategyResults(batchId, analyzedStrategy.StrategyResult.StrategyResult);
                 
                 // Upload the segment stats if any exist
-                if (resultWithStats.SegmentStats.Any())
+                if (analyzedStrategy.StrategyResult.SegmentStats.Any())
                 {
-                    await _cloudPlatform.AddSegmentStats(batchId, strategyResultId, resultWithStats.SegmentStats);
+                    await _cloudPlatform.AddSegmentStats(batchId, strategyResultId, analyzedStrategy.StrategyResult.SegmentStats);
                 }
                 
                 _totalUploadedStrategies++;

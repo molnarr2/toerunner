@@ -1,6 +1,7 @@
 using ToeRunner.Model;
 using ToeRunner.Model.BigToe;
 using ToeRunner.Plugin;
+using ToeRunner.StrategyAnalysis;
 
 namespace ToeRunner.ToeRun;
 
@@ -30,8 +31,9 @@ public class ToeRunFactory : IToeRunFactory
     /// <param name="id">Unique identifier for the run</param>
     /// <param name="batchToeRunId">The ID of the batch run in Firebase</param>
     /// <param name="segmentConfig">Optional SegmentConfig for filtering segments based on TrainOn field</param>
+    /// <param name="strategyAnalysisService">The strategy analysis service for analyzing strategies</param>
     /// <returns>An IToeRun implementation</returns>
-    public IToeRun Create(ToeJob job, int id, string? batchToeRunId, SegmentConfig? segmentConfig)
+    public IToeRun Create(ToeJob job, int id, string? batchToeRunId, SegmentConfig? segmentConfig, StrategyAnalysisService strategyAnalysisService)
     {
         return new ToeRunImplementation(
             _config, 
@@ -39,6 +41,7 @@ public class ToeRunFactory : IToeRunFactory
             id, 
             batchToeRunId,
             _cloudPlatform,
-            segmentConfig);
+            segmentConfig,
+            strategyAnalysisService);
     }
 }

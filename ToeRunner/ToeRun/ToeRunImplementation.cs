@@ -2,12 +2,12 @@ using System.Diagnostics;
 using System.Text.Json;
 using ToeRunner.Conversion;
 using ToeRunner.FileOps;
-using ToeRunner.Filter;
 using ToeRunner.Firebase;
 using ToeRunner.Model;
 using ToeRunner.Model.BigToe;
 using ToeRunner.Model.Firebase;
 using ToeRunner.Plugin;
+using ToeRunner.StrategyAnalysis;
 
 namespace ToeRunner.ToeRun
 {
@@ -22,12 +22,11 @@ namespace ToeRunner.ToeRun
         private readonly ToeJob _job;
         private readonly int _id;
         private readonly string? _batchToeRunId;
-        private readonly FilterPercentageType _filterPercentageType;
         private readonly ICloudPlatform? _cloudPlatform;
         private readonly SegmentConfig? _segmentConfig;
+        private readonly StrategyAnalysisService _strategyAnalysisService;
         private int _strategyCount = 0;
         private int _uploadedStrategyCount = 0;
-        private List<StrategyResultWithSegmentStats> _filteredStrategies = new List<StrategyResultWithSegmentStats>();
 
         /// <summary>
         /// Constructor for ToeRunImplementation
@@ -38,21 +37,23 @@ namespace ToeRunner.ToeRun
         /// <param name="batchToeRunId">The ID of the batch run in Firebase, can be null</param>
         /// <param name="cloudPlatform">Cloud platform for uploading results, can be null</param>
         /// <param name="segmentConfig">Optional SegmentConfig for filtering segments based on TrainOn field</param>
+        /// <param name="strategyAnalysisService">The strategy analysis service for analyzing strategies</param>
         public ToeRunImplementation(
             ToeRunnerConfig config, 
             ToeJob job, 
             int id, 
             string? batchToeRunId,
             ICloudPlatform? cloudPlatform,
-            SegmentConfig? segmentConfig)
+            SegmentConfig? segmentConfig,
+            StrategyAnalysisService strategyAnalysisService)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _job = job ?? throw new ArgumentNullException(nameof(job));
             _id = id;
             _batchToeRunId = batchToeRunId;
-            _filterPercentageType = _config.FilterProfitPercentage;
             _cloudPlatform = cloudPlatform;
             _segmentConfig = segmentConfig;
+            _strategyAnalysisService = strategyAnalysisService ?? throw new ArgumentNullException(nameof(strategyAnalysisService));
             _uniqueInstanceId = System.Threading.Interlocked.Increment(ref _globalInstanceCounter);
         }
 
@@ -168,17 +169,18 @@ namespace ToeRunner.ToeRun
                 List<StrategyResultWithSegmentStats> strategyResultsWithStats = StrategyResultConverter.ConvertToStrategyResults(strategyEvaluationResult, _job.RunName, _config.UserId, _batchToeRunId ?? string.Empty, _segmentConfig);
                 Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Converted {strategyResultsWithStats.Count} strategy results with segment stats.");
                 
-                // 9. Filter to 10% of strategies
-                List<StrategyResultWithSegmentStats> filteredResultsWithStats = StrategyFilter.FilterFailedStrategies(
-                    strategyResultsWithStats, 
-                    0.10m, 
-                    _filterPercentageType);
-                
-                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Filtered to {filteredResultsWithStats.Count} strategy results after applying 10% filter.");
-                
-                // 10. Add to thread-safe list of all strategies
-                _filteredStrategies = filteredResultsWithStats;
-                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Added {_filteredStrategies.Count} strategies to the list for later upload.");
+                // 9. Add strategies to the analysis service
+                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Step {step++}: Adding {strategyResultsWithStats.Count} strategies to analysis service");
+                int addedCount = 0;
+                foreach (var strategy in strategyResultsWithStats)
+                {
+                    bool added = await _strategyAnalysisService.AddStrategyAsync(strategy);
+                    if (added)
+                    {
+                        addedCount++;
+                    }
+                }
+                Console.WriteLine($"[ToeRun-{_uniqueInstanceId}] Added {addedCount} strategies to the top 100 list.");
             }
             catch (Exception ex)
             {
@@ -240,11 +242,6 @@ namespace ToeRunner.ToeRun
         public int GetUploadedStrategyCount()
         {
             return _uploadedStrategyCount;
-        }
-        
-        public List<StrategyResultWithSegmentStats> GetFilteredStrategies()
-        {
-            return _filteredStrategies;
         }
         
         private async Task RunProcessAsync(string executablePath, string arguments)
