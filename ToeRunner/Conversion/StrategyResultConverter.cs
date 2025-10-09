@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using ToeRunner.Math;
 using ToeRunner.Model.BigToe;
 using ToeRunner.Model.Firebase;
