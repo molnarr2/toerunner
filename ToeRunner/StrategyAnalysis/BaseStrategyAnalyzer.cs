@@ -202,9 +202,10 @@ public abstract class BaseStrategyAnalyzer : IStrategyAnalyzer
         FirebaseStrategyPerformance valPerf)
     {
         // Avoid division by zero
+        // Returns 0 for perfect consistency, higher values indicate worse consistency
         if (testPerf.WinRate < 0.01 || SysMath.Abs(testPerf.MedianProfit) < 0.0001 || testPerf.SharpeRatio < 0.01)
         {
-            return 0;
+            return 100.0; // Maximum inconsistency for invalid data
         }
 
         var winRateDiff = SysMath.Abs(testPerf.WinRate - valPerf.WinRate) / testPerf.WinRate;
@@ -213,7 +214,8 @@ public abstract class BaseStrategyAnalyzer : IStrategyAnalyzer
         
         var avgDiff = (winRateDiff + profitDiff + sharpeDiff) / 3.0;
         
-        return SysMath.Max(0, 100.0 - (avgDiff * 100.0));
+        // Return the average difference as a percentage (0 = perfect, can exceed 100)
+        return avgDiff * 100.0;
     }
 
     protected double CalculateMedian(List<double> values)

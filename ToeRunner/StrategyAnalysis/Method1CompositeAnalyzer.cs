@@ -20,7 +20,7 @@ public class Method1CompositeAnalyzer : BaseStrategyAnalyzer
         //     (SharpeRatio × 20 × 0.20) +
         //     (MedianProfit × 100 × 0.20) +
         //     (ProfitAtRealisticFees × 100 × 0.15) +
-        //     (ConsistencyScore × 0.10) +
+        //     (ConsistencyBonus × 0.10) +  // Inverted: lower consistencyScore is better
         //     (OutlierPenalty × 0.10)
         
         // Use validation performance as primary (50% weight) and test as secondary (35%)
@@ -32,12 +32,15 @@ public class Method1CompositeAnalyzer : BaseStrategyAnalyzer
         
         var outlierPenalty = 1.0 - topTwoContrib;
         
+        // Invert consistency score: 0 is perfect, so we convert to bonus (100 - consistencyScore) / 100
+        var consistencyBonus = SysMath.Max(0, 100.0 - consistencyScore) / 100.0;
+        
         var qualityScore = 
             (winRate * 0.25) +
             (sharpeRatio * 20.0 * 0.20) +
             (medianProfit * 100.0 * 0.20) +
             (profitAtFees * 100.0 * 0.15) +
-            (consistencyScore * 0.10) +
+            (consistencyBonus * 0.10) +
             (outlierPenalty * 0.10);
         
         return SysMath.Max(0, qualityScore);
@@ -70,13 +73,13 @@ public class Method1CompositeAnalyzer : BaseStrategyAnalyzer
             notes.Add($"WARNING: Validation top two segment contribution is {valPerf.TopTwoSegmentContribution:F1}% (>60%)");
         }
         
-        if (consistencyScore < 60.0)
+        if (consistencyScore > 40.0)
         {
-            notes.Add($"WARNING: Low consistency score ({consistencyScore:F1}) - possible overfitting");
+            notes.Add($"WARNING: High inconsistency score ({consistencyScore:F1}) - possible overfitting");
         }
-        else if (consistencyScore >= 80.0)
+        else if (consistencyScore <= 20.0)
         {
-            notes.Add($"GOOD: High consistency score ({consistencyScore:F1})");
+            notes.Add($"GOOD: Low inconsistency score ({consistencyScore:F1})");
         }
         
         if (valPerf.WinRate >= 0.7)

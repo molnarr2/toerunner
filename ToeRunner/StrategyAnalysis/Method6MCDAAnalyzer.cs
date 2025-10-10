@@ -53,12 +53,16 @@ public class Method6MCDAAnalyzer : BaseStrategyAnalyzer
         var avgTopTwoContrib = valPerf.TopTwoSegmentContribution * 0.5 + testPerf.TopTwoSegmentContribution * 0.35;
         var outlierPenalty = SysMath.Max(0, avgTopTwoContrib - 0.4);
         
+        // Convert consistency score to bonus (0 is perfect, so invert it)
+        var consistencyBonus = SysMath.Max(0, 100.0 - consistencyScore);
+        
         // Calculate base score with weights
+        // For meme tokens, profit is more important than consistency (10% vs 20%)
         var baseScore = 
-            (profitScore * 0.30) +
+            (profitScore * 0.40) +
             (sharpeScore * 0.25) +
             (winRateScore * 0.25) +
-            (consistencyScore * 0.20);
+            (consistencyBonus * 0.10);
         
         // Apply penalties
         var qualityScore = SysMath.Max(0, baseScore - (riskPenalty * 0.3) - (outlierPenalty * 0.2));
@@ -93,13 +97,13 @@ public class Method6MCDAAnalyzer : BaseStrategyAnalyzer
             notes.Add($"WARNING: Validation top two segment contribution is {valPerf.TopTwoSegmentContribution:F1}% (>60%)");
         }
         
-        if (consistencyScore < 60.0)
+        if (consistencyScore > 40.0)
         {
-            notes.Add($"WARNING: Low consistency score ({consistencyScore:F1}) - possible overfitting");
+            notes.Add($"WARNING: High inconsistency score ({consistencyScore:F1}) - possible overfitting");
         }
-        else if (consistencyScore >= 80.0)
+        else if (consistencyScore <= 20.0)
         {
-            notes.Add($"GOOD: High consistency score ({consistencyScore:F1})");
+            notes.Add($"GOOD: Low inconsistency score ({consistencyScore:F1})");
         }
         
         if (valPerf.WinRate >= 0.7)
