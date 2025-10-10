@@ -30,7 +30,7 @@ public class Method1CompositeAnalyzer : BaseStrategyAnalyzer
         var profitAtFees = valPerf.ProfitAtRealisticFees * 0.5 + testPerf.ProfitAtRealisticFees * 0.35;
         var topTwoContrib = valPerf.TopTwoSegmentContribution * 0.5 + testPerf.TopTwoSegmentContribution * 0.35;
         
-        var outlierPenalty = 100.0 - topTwoContrib;
+        var outlierPenalty = 1.0 - topTwoContrib;
         
         var qualityScore = 
             (winRate * 0.25) +
@@ -60,12 +60,12 @@ public class Method1CompositeAnalyzer : BaseStrategyAnalyzer
             notes.Add("WARNING: Validation median profit is not positive");
         }
         
-        if (testPerf.TopTwoSegmentContribution > 60.0)
+        if (testPerf.TopTwoSegmentContribution > 0.6)
         {
             notes.Add($"WARNING: Test top two segment contribution is {testPerf.TopTwoSegmentContribution:F1}% (>60%)");
         }
         
-        if (valPerf.TopTwoSegmentContribution > 60.0)
+        if (valPerf.TopTwoSegmentContribution > 0.6)
         {
             notes.Add($"WARNING: Validation top two segment contribution is {valPerf.TopTwoSegmentContribution:F1}% (>60%)");
         }
@@ -79,7 +79,7 @@ public class Method1CompositeAnalyzer : BaseStrategyAnalyzer
             notes.Add($"GOOD: High consistency score ({consistencyScore:F1})");
         }
         
-        if (valPerf.WinRate >= 70.0)
+        if (valPerf.WinRate >= 0.7)
         {
             notes.Add($"GOOD: High validation win rate ({valPerf.WinRate:F1}%)");
         }

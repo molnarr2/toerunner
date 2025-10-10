@@ -152,7 +152,7 @@ public abstract class BaseStrategyAnalyzer : IStrategyAnalyzer
         }
 
         // Win rate: percentage of segments with positive profit
-        performance.WinRate = profits.Count(p => p > 0) * 100.0 / profits.Count;
+        performance.WinRate = (profits.Count(p => p > 0) * 1.0) / profits.Count;
         
         // Mean profit
         performance.MeanProfit = profits.Average();
@@ -249,7 +249,7 @@ public abstract class BaseStrategyAnalyzer : IStrategyAnalyzer
         if (SysMath.Abs(totalProfit) < 0.0001) return 0;
         
         var topTwo = profits.OrderByDescending(p => p).Take(2).Sum();
-        return (topTwo / totalProfit) * 100.0;
+        return (topTwo / totalProfit);
     }
 
     protected double CalculateTrimmedMean(List<double> values, double trimProportion)

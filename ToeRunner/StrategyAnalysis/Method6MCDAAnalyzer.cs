@@ -10,7 +10,7 @@ namespace ToeRunner.StrategyAnalysis;
 public class Method6MCDAAnalyzer : BaseStrategyAnalyzer
 {
     // Perfect thresholds for normalization
-    private const double PERFECT_WIN_RATE = 80.0;
+    private const double PERFECT_WIN_RATE = 0.8;
     private const double PERFECT_SHARPE = 3.0;
     private const double PERFECT_MEDIAN_PROFIT = 0.10;
     private const double PERFECT_FEE_PROFIT = 0.08;
@@ -51,7 +51,7 @@ public class Method6MCDAAnalyzer : BaseStrategyAnalyzer
         
         // Calculate outlier penalty
         var avgTopTwoContrib = valPerf.TopTwoSegmentContribution * 0.5 + testPerf.TopTwoSegmentContribution * 0.35;
-        var outlierPenalty = SysMath.Max(0, avgTopTwoContrib - 40.0);
+        var outlierPenalty = SysMath.Max(0, avgTopTwoContrib - 0.4);
         
         // Calculate base score with weights
         var baseScore = 
@@ -83,12 +83,12 @@ public class Method6MCDAAnalyzer : BaseStrategyAnalyzer
             notes.Add("WARNING: Validation median profit is not positive");
         }
         
-        if (testPerf.TopTwoSegmentContribution > 60.0)
+        if (testPerf.TopTwoSegmentContribution > 0.6)
         {
             notes.Add($"WARNING: Test top two segment contribution is {testPerf.TopTwoSegmentContribution:F1}% (>60%)");
         }
         
-        if (valPerf.TopTwoSegmentContribution > 60.0)
+        if (valPerf.TopTwoSegmentContribution > 0.6)
         {
             notes.Add($"WARNING: Validation top two segment contribution is {valPerf.TopTwoSegmentContribution:F1}% (>60%)");
         }
@@ -102,7 +102,7 @@ public class Method6MCDAAnalyzer : BaseStrategyAnalyzer
             notes.Add($"GOOD: High consistency score ({consistencyScore:F1})");
         }
         
-        if (valPerf.WinRate >= 70.0)
+        if (valPerf.WinRate >= 0.7)
         {
             notes.Add($"GOOD: High validation win rate ({valPerf.WinRate:F1}%)");
         }

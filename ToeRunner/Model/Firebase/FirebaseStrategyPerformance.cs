@@ -23,13 +23,13 @@ public class FirebaseStrategyPerformance
     [FirestoreProperty("medianProfit")]
     public double MedianProfit { get; set; }
     
-    [FirestoreProperty("stdDev")]
+    [FirestoreProperty("stdDevProfit")]
     public double StdDevProfit { get; set; }
     
-    [FirestoreProperty("cv")]
+    [FirestoreProperty("coefficientOfVariation")]
     public double CoefficientOfVariation { get; set; }
     
-    [FirestoreProperty("sharpe")]
+    [FirestoreProperty("sharpeRatio")]
     public double SharpeRatio { get; set; }
     
     [FirestoreProperty("profitPerTrade")]
@@ -38,15 +38,15 @@ public class FirebaseStrategyPerformance
     [FirestoreProperty("totalTrades")]
     public int TotalTrades { get; set; }
     
-    [FirestoreProperty("profitAtFees")]
+    [FirestoreProperty("profitAtRealisticFees")]
     public double ProfitAtRealisticFees { get; set; }
     
     [FirestoreProperty("maxDrawdown")]
     public double MaxDrawdown { get; set; }
     
-    [FirestoreProperty("topTwoContrib")]
+    [FirestoreProperty("topTwoSegmentContribution")]
     public double TopTwoSegmentContribution { get; set; }
     
-    [FirestoreProperty("trimmedMean")]
+    [FirestoreProperty("trimmedMeanProfit")]
     public double TrimmedMeanProfit { get; set; }
 }
