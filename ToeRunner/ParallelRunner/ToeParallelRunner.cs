@@ -155,7 +155,8 @@ public class ToeParallelRunner
                 Server = _config.Server,
                 StartTimestamp = DateTime.Now,
                 JobCount = jobQueueCount,
-                SegmentTrainInfo = ConvertToSegmentTrainInfo(_segmentConfig)
+                SegmentTrainInfo = ConvertToSegmentTrainInfo(_segmentConfig),
+                SegmentCount = _segmentConfig?.Segments?.Count ?? 0
             };
             
             var batchId = await _cloudPlatform.AddBatchToeRun(batchToeRun);

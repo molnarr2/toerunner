@@ -115,12 +115,21 @@ public class FirebaseFirestore : ICloudPlatform {
         
         if (_firestoreDb == null)
             throw new InvalidOperationException("FirestoreDb has not been initialized. Call Initialize first.");
+        
+        // Filter out segments with no trades
+        var segmentsWithTrades = segmentStats.Where(s => s.TotalTrades > 0).ToList();
+        
+        if (!segmentsWithTrades.Any())
+        {
+            Console.WriteLine($"No segments with trades to upload for strategy {strategyResultId}");
+            return;
+        }
             
         // Process segment stats in batches
-        for (int i = 0; i < segmentStats.Count; i += MaxBatchSize)
+        for (int i = 0; i < segmentsWithTrades.Count; i += MaxBatchSize)
         {
             var batch = _firestoreDb.StartBatch();
-            var currentBatch = segmentStats.Skip(i).Take(MaxBatchSize);
+            var currentBatch = segmentsWithTrades.Skip(i).Take(MaxBatchSize);
             
             foreach (var segmentStat in currentBatch)
             {

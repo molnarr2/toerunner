@@ -49,4 +49,7 @@ public class BatchToeRun {
     
     [FirestoreProperty("segmentTrainInfo")]
     public List<SegmentTrainInfo> SegmentTrainInfo { get; set; } = new();
+    
+    [FirestoreProperty("segmentCount")]
+    public int SegmentCount { get; set; }
 }

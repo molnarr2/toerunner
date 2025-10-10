@@ -68,8 +68,17 @@ public class MockCloudPlatform : ICloudPlatform
             
         if (segmentStats == null || segmentStats.Count == 0)
             throw new ArgumentException("Segment stats cannot be null or empty", nameof(segmentStats));
+        
+        // Filter out segments with no trades
+        var segmentsWithTrades = segmentStats.Where(s => s.TotalTrades > 0).ToList();
+        
+        if (!segmentsWithTrades.Any())
+        {
+            Console.WriteLine($"[MOCK] No segments with trades to upload for strategy {strategyResultId}");
+            return Task.CompletedTask;
+        }
             
-        Console.WriteLine($"[MOCK] Added {segmentStats.Count} segment stats for strategy {strategyResultId} in batch {batchToeRunId}");
+        Console.WriteLine($"[MOCK] Added {segmentsWithTrades.Count} segment stats (filtered from {segmentStats.Count}) for strategy {strategyResultId} in batch {batchToeRunId}");
         
         return Task.CompletedTask;
     }
