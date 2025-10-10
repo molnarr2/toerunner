@@ -11,6 +11,9 @@ public class FirebaseStrategyPerformance
     [FirestoreProperty("segmentCount")]
     public int SegmentCount { get; set; }
     
+    [FirestoreProperty("zeroTradeSegmentCount")]
+    public int ZeroTradeSegmentCount { get; set; }
+    
     [FirestoreProperty("winRate")]
     public double WinRate { get; set; }
     

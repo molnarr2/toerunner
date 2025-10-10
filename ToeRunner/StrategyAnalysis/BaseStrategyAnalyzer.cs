@@ -18,8 +18,17 @@ public abstract class BaseStrategyAnalyzer : IStrategyAnalyzer
             return null;
         }
 
+        // Filter out zero-trade segments
+        var zeroTradeCount = segmentStats.Count(s => s.TotalTrades == 0);
+        var nonZeroSegments = segmentStats.Where(s => s.TotalTrades > 0).ToList();
+        
+        if (nonZeroSegments.Count == 0)
+        {
+            return null;
+        }
+
         // Get profits based on fee
-        var profits = GetProfitsForFee(segmentStats, feePerTrade);
+        var profits = GetProfitsForFee(nonZeroSegments, feePerTrade);
         
         // Apply hard filters
         if (!PassesHardFilters(profits))
@@ -27,7 +36,8 @@ public abstract class BaseStrategyAnalyzer : IStrategyAnalyzer
             return null;
         }
 
-        var performance = CalculatePerformance(segmentStats, profits);
+        var performance = CalculatePerformance(nonZeroSegments, profits);
+        performance.ZeroTradeSegmentCount = zeroTradeCount;
         return performance;
     }
 
@@ -35,13 +45,23 @@ public abstract class BaseStrategyAnalyzer : IStrategyAnalyzer
     {
         var validation = new FirebaseStrategyValidation();
         
+        // Filter out zero-trade segments from test set
+        var testZeroTradeCount = testSegmentStats.Count(s => s.TotalTrades == 0);
+        var testNonZeroSegments = testSegmentStats.Where(s => s.TotalTrades > 0).ToList();
+        
+        // Filter out zero-trade segments from validation set
+        var valZeroTradeCount = validationSegmentStats.Count(s => s.TotalTrades == 0);
+        var valNonZeroSegments = validationSegmentStats.Where(s => s.TotalTrades > 0).ToList();
+        
         // Calculate test performance
-        var testProfits = GetProfitsForFee(testSegmentStats, feePerTrade);
-        validation.TestPerformance = CalculatePerformance(testSegmentStats, testProfits);
+        var testProfits = GetProfitsForFee(testNonZeroSegments, feePerTrade);
+        validation.TestPerformance = CalculatePerformance(testNonZeroSegments, testProfits);
+        validation.TestPerformance.ZeroTradeSegmentCount = testZeroTradeCount;
         
         // Calculate validation performance
-        var valProfits = GetProfitsForFee(validationSegmentStats, feePerTrade);
-        validation.ValidationPerformance = CalculatePerformance(validationSegmentStats, valProfits);
+        var valProfits = GetProfitsForFee(valNonZeroSegments, feePerTrade);
+        validation.ValidationPerformance = CalculatePerformance(valNonZeroSegments, valProfits);
+        validation.ValidationPerformance.ZeroTradeSegmentCount = valZeroTradeCount;
         
         // Calculate consistency score
         validation.ConsistencyScore = CalculateConsistencyScore(
