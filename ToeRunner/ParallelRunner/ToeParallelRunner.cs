@@ -118,7 +118,14 @@ public class ToeParallelRunner
             // Run the IToeRun instance
             await toeRun.RunAsync();
             
-            Console.WriteLine($"Thread {threadId} completed job: {job.Name}");
+            // Update the total strategies count
+            int strategyCount = toeRun.GetStrategyCount();
+            lock (_lockObject)
+            {
+                _totalStrategiesProcessed += strategyCount;
+            }
+            
+            Console.WriteLine($"Thread {threadId} completed job: {job.Name} with {strategyCount} strategies. Total strategies processed: {_totalStrategiesProcessed}");
         }
         catch (Exception ex)
         {
