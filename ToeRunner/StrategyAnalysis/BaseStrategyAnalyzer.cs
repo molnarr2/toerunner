@@ -31,10 +31,10 @@ public abstract class BaseStrategyAnalyzer : IStrategyAnalyzer
         var profits = GetProfitsForFee(nonZeroSegments, feePerTrade);
         
         // Apply hard filters
-        if (!PassesHardFilters(profits))
-        {
-            return null;
-        }
+        // if (!PassesHardFilters(profits))
+        // {
+//            return null;
+//        }
 
         var performance = CalculatePerformance(nonZeroSegments, profits);
         performance.ZeroTradeSegmentCount = zeroTradeCount;

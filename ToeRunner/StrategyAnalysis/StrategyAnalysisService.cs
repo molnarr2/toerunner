@@ -121,6 +121,9 @@ public class StrategyAnalysisService
         var validation001 = _analyzer.GenerateValidation(testSegments, validationSegments, 0.0001); // 0.01%
         var validation08 = _analyzer.GenerateValidation(testSegments, validationSegments, 0.008);   // 0.8%
         var validation15 = _analyzer.GenerateValidation(testSegments, validationSegments, 0.015);   // 1.5%
+        
+        // Debug output for validation001
+        Console.WriteLine($"[Validation001] QualityScore: {validation001.QualityScore:F4}, ConsistencyScore: {validation001.ConsistencyScore:F4} | Test: ProfitAtRealisticFees={validation001.TestPerformance.ProfitAtRealisticFees:F4}, WinRate={validation001.TestPerformance.WinRate:F4}, MeanProfit={validation001.TestPerformance.MeanProfit:F4}, TotalTrades={validation001.TestPerformance.TotalTrades} | Validation: ProfitAtRealisticFees={validation001.ValidationPerformance.ProfitAtRealisticFees:F4}, WinRate={validation001.ValidationPerformance.WinRate:F4}, MeanProfit={validation001.ValidationPerformance.MeanProfit:F4}, TotalTrades={validation001.ValidationPerformance.TotalTrades}");
 
         // Step 3: Create the analyzed strategy
         var analyzedStrategy = new AnalyzedStrategy(

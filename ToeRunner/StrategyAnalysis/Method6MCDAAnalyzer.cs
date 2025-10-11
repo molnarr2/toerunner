@@ -59,8 +59,8 @@ public class Method6MCDAAnalyzer : BaseStrategyAnalyzer
         // Calculate base score with weights
         // For meme tokens, profit is more important than consistency (10% vs 20%)
         var baseScore = 
-            (profitScore * 0.40) +
-            (sharpeScore * 0.25) +
+            (profitScore * 0.45) +
+            (sharpeScore * 0.20) +
             (winRateScore * 0.25) +
             (consistencyBonus * 0.10);
         
